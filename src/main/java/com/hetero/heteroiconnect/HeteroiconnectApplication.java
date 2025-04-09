@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @EnableScheduling           // Enable Spring Scheduling for periodic tasks
 @CrossOrigin(origins = { "http://172.19.1.84:4200" })  // Allow cross-origin requests from the specified origin
 public class HeteroiconnectApplication extends SpringBootServletInitializer {
-
+ 
 	/// Live
     private static final Logger logger = LoggerFactory.getLogger(HeteroiconnectApplication.class);
 
