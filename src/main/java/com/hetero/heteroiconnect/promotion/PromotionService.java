@@ -10,8 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.hetero.heteroiconnect.idcard.EmployeeNotFoundException;
+import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundException;
+import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
+
+ 
+
+ 
 
  
 @Service
@@ -204,30 +210,113 @@ public class PromotionService {
 		return jdbcTemplate.queryForList(query.toString());
 	}
 
+//	public Object insertregistation(ConfirmationRegistation confirmationRegistation) {
+//		try {
+//			String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
+//					+ "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
+//					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " + "ON DUPLICATE KEY UPDATE "
+//					+ "DESIGNATIONID = VALUES(DESIGNATIONID), " + "DEPARTMENTID = VALUES(DEPARTMENTID), "
+//					+ "SECTIONID = VALUES(SECTIONID), " + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
+//					+ "ONDATE = VALUES(ONDATE), " + "COMMENTS = VALUES(COMMENTS), " + "STATUS = VALUES(STATUS)";
+//
+//			int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery, confirmationRegistation.getEmployeeid(),
+//					confirmationRegistation.getDesignationid(), confirmationRegistation.getDepartmentid(),
+//					confirmationRegistation.getSectionid(), confirmationRegistation.getEmploymenttypeid(),
+//					confirmationRegistation.getConfirmationdate(), confirmationRegistation.getComments(), 1001);
+//
+//			if (rowsAffected > 0) {
+//				return ResponseEntity.status(HttpStatus.OK).body("Insertion successful!");
+//				
+//				
+//			} else {
+//				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No rows affected.");
+//			}
+//		} catch (DataAccessException e) {
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//					.body("Internal Server Error: " + e.getMessage());
+//		}
+//	}
+	
+	
+	
+	@Transactional
 	public Object insertregistation(ConfirmationRegistation confirmationRegistation) {
-		try {
-			String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
-					+ "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
-					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " + "ON DUPLICATE KEY UPDATE "
-					+ "DESIGNATIONID = VALUES(DESIGNATIONID), " + "DEPARTMENTID = VALUES(DEPARTMENTID), "
-					+ "SECTIONID = VALUES(SECTIONID), " + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
-					+ "ONDATE = VALUES(ONDATE), " + "COMMENTS = VALUES(COMMENTS), " + "STATUS = VALUES(STATUS)";
-
-			int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery, confirmationRegistation.getEmployeeid(),
-					confirmationRegistation.getDesignationid(), confirmationRegistation.getDepartmentid(),
-					confirmationRegistation.getSectionid(), confirmationRegistation.getEmploymenttypeid(),
-					confirmationRegistation.getConfirmationdate(), confirmationRegistation.getComments(), 1001);
-
-			if (rowsAffected > 0) {
-				return ResponseEntity.status(HttpStatus.OK).body("Insertion successful!");
-			} else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No rows affected.");
-			}
-		} catch (DataAccessException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Internal Server Error: " + e.getMessage());
-		}
+	    try {
+	      
+	        String checkQuery = "SELECT count(*) FROM test.tbl_employee_confirmation_details WHERE employeeid=? AND status=1001";
+	        int count = jdbcTemplate.queryForObject(checkQuery, Integer.class, confirmationRegistation.getEmployeeid());
+ 
+	        if (count > 0) {
+	        	throw new EmployeeAlreadyFoundException("Employee already confirmed. Duplicate entry detected. Please use the edit option below on the displayed screen to search for the employee and update the record");
+	        }
+	        String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
+	                + "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
+	                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+	                + "ON DUPLICATE KEY UPDATE "
+	                + "DESIGNATIONID = VALUES(DESIGNATIONID), "
+	                + "DEPARTMENTID = VALUES(DEPARTMENTID), "
+	                + "SECTIONID = VALUES(SECTIONID), "
+	                + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
+	                + "ONDATE = VALUES(ONDATE), "
+	                + "COMMENTS = VALUES(COMMENTS), "
+	                + "STATUS = VALUES(STATUS)";
+ 
+	        int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery,
+	                confirmationRegistation.getEmployeeid(),
+	                confirmationRegistation.getDesignationid(),
+	                confirmationRegistation.getDepartmentid(),
+	                confirmationRegistation.getSectionid(),
+	                confirmationRegistation.getEmploymenttypeid(),
+	                confirmationRegistation.getConfirmationdate(),
+	                confirmationRegistation.getComments(),
+	                1001);
+ 
+	        if (rowsAffected > 0) {
+	            boolean employeePrimaryUpdated = updateEmployeePrimary(confirmationRegistation.getEmployeeid());
+ 
+	            if (employeePrimaryUpdated) {
+	                boolean leaveQuotaUpdated = updateLeaveQuota(confirmationRegistation.getEmployeeid());
+ 
+	                if (leaveQuotaUpdated) {
+	                    return ResponseEntity.status(HttpStatus.OK).body("Insertion Sucessfull");
+	                } else {
+	                  
+	                    throw new RuntimeException("Leave quota update failed.");
+	                }
+	            } else {
+	              
+	                throw new RuntimeException("Employee is not probition");
+	            }
+	        } else {
+	           
+	            throw new RuntimeException("No rows affected during insertion.");
+	        }
+	    } catch (DataAccessException e) {
+	        System.err.println("Database error: " + e.getMessage());
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body("Internal Server Error: " + e.getMessage());
+	    }
 	}
+ 
+	private boolean updateEmployeePrimary(int employeeid) {
+	    String updateQuery = "UPDATE hclhrm_prod.tbl_employee_primary "
+	            + "SET employmenttypeid = 1 "
+	            + "WHERE employeeid = ? AND employmenttypeid = 2 AND status = 1001";
+	    
+	    int updateRows = jdbcTemplate.update(updateQuery, employeeid);
+	    return updateRows > 0;
+	}
+ 
+	private boolean updateLeaveQuota(int employeeid) {
+	    String leaveQuotaUpdateQuery = "UPDATE hclhrm_prod_others.tbl_emp_leave_quota "
+	            + "SET maxleave = 3, for_month = 0 "
+	            + "WHERE employeeid IN (SELECT EMPLOYEEID FROM hclhrm_prod.tbl_employee_primary "
+	            + "WHERE employeeid = ?) "
+	            + "AND status = 1001 AND leavetypeid IN (1, 2)";
+	    int leaveQuotaRowsAffected = jdbcTemplate.update(leaveQuotaUpdateQuery, employeeid);
+	    return leaveQuotaRowsAffected > 0;
+	}
+	
 
 	public Object fetchConfirmationData() {
 		StringBuffer query = new StringBuffer();
