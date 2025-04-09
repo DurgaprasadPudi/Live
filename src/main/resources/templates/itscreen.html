@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8"/>
+	<title>Asset Request</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; font-size: 14px;">
+
+	<p style="font-size: 14px;">Dear <strong>IT Team,</strong></p>
+	<p style="font-size: 14px;">An asset request has been raised by HR <strong>:</strong> <strong
+			th:text="${loginId} + ' - ' + ${hrName}"></strong></p>
+	<p style="font-size: 14px;">Please review the requested assets and acknowledge them:</p>
+
+	<table style="width: 100%; border-collapse: collapse; border: 1px solid black;">
+		<thead>
+			<tr style="background-color: #f2f2f2; border: 1px solid black;">
+				<th style="text-align: left; border: 1px solid black; width: 203px;font-size:14px;padding:6px">Asset
+					Name</th>
+				<th style="text-align: left; border: 1px solid black;;font-size:14px;padding:6px">Description</th>
+			</tr>
+		</thead>
+		<tbody>
+			<tr th:each="asset : ${assetNames}" style="border: 1px solid black;">
+				<td style="border: 1px solid black; width: 203px;font-size:14px;padding:6px"
+					th:text="${asset[0] != null ? asset[0] : '-'}"></td>
+				<td style="border: 1px solid black;font-size:14px;padding:6px"
+					th:text="${asset[1] != null ? asset[1] : '-'}"></td>
+			</tr>
+		</tbody>
+	</table>
+
+	<br />
+	<table style="width: 100%; border-collapse: collapse;">
+		<tr>
+			<td style="font-weight: bold; width: 200px;font-size:14px">Request ID</td>
+			<td style="width: 20px;">:</td>
+			<td style="font-size:14px" th:text="${requestId}"></td>
+		</tr>
+		<tr>
+			<td style="font-weight: bold; width: 200px;font-size:14px">Employee Name</td>
+			<td style="width: 20px;">:</td>
+			<td style="font-size:14px" th:text="${empName}"></td>
+		</tr>
+		<tr>
+			<td style="font-weight: bold; width: 200px;font-size:14px">Department Name</td>
+			<td style="width: 20px;">:</td>
+			<td style="font-size:14px" th:text="${depName}"></td>
+		</tr>
+		<tr>
+			<td style="font-weight: bold; width: 200px;font-size:14px">Reporting Manager</td>
+			<td style="width: 20px;">:</td>
+			<td style="font-size:14px" th:text="${reportingManagerId} + ' - ' + ${reportingManagerName}"></td>
+		</tr>
+		<tr>
+			<td style="font-weight: bold; width: 200px;font-size:14px">Tentative Joining Date</td>
+			<td style="width: 20px;">:</td>
+			<td style="font-size:14px" th:text="${date}"></td>
+		</tr>
+	</table>
+
+	<p style="font-size: 14px;">For any queries, please contact IT Support.</p>
+	<p style="font-size: 14px;">Best Regards,<br />Asset Management Team</p>
+
+</body>
+
+</html>

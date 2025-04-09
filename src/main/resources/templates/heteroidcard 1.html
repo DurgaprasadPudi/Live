@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>ID Card</title>
+	<style>
+		@page {
+			size: A4;
+			/* Exact page size for printing */
+			margin: 0;
+			/* Remove all margins */
+		}
+
+		body {
+			margin: 0;
+			padding: 0;
+			height: 100vh;
+		}
+
+		.idcard {
+			margin: 0;
+			padding: 0;
+			width: 793px;
+			/* A4 width at 96 DPI */
+			height: 1122px;
+			/* A4 height at 96 DPI */
+			background: #fff;
+			page-break-after: always;
+			/* Ensures one card per page */
+		}
+
+		.idcard .section1 {
+			background-image: url("{{HHC_IMAGE}}");
+			background-size: 100% 100%;
+			/* Ensures the image covers the full section */
+			background-repeat: no-repeat;
+			background-position: center;
+			width: 100%;
+			height: 100%;
+		}
+
+		.idcard .section1,
+		.idcard .section2 {
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+
+		}
+
+		.idcard .section1 {
+			position: relative;
+			background-image: url("{{HHC_IMAGE}}");
+			background-size: 100% 100%;
+			/* Ensures the image scales to fit A4 dimensions */
+			background-repeat: no-repeat;
+			/* Prevent tiling */
+			background-position: top left;
+			/* Align the image to the top-left corner */
+			width: 793px;
+			/* A4 width at 96 DPI */
+			height: 1122px;
+			/* A4 height at 96 DPI */
+			margin: 0 auto;
+			/* Center the ID card horizontally */
+			opacity: 1 !important;
+		}
+
+		.idcard .section1 .img {
+			position: absolute;
+			top: 319px;
+			left: 27.3%;
+			margin: auto;
+			overflow: hidden;
+		}
+
+		.idcard .section1 .img img {
+			width: 359px;
+			height: 359px;
+			border-radius: 50%;
+			/* Fully circular */
+			object-fit: cover;
+			display: block;
+			overflow: hidden;
+		}
+
+
+		.idcard .section1 table {
+			position: absolute;
+			top: 720px;
+			/* Adjusted for A4 scaling */
+			left: 8%;
+			/* Slight margin from left */
+		}
+
+		.idcard .section1 table tr {
+			margin-top: 10px;
+		}
+
+		.idcard .section1 table td {
+			color: #fff;
+			font-size: 30px;
+			font-weight: 600;
+			text-transform: uppercase;
+			padding: 5px 15px;
+		}
+
+		.idcard .section2 {
+			position: relative;
+		}
+
+		.idcard .section2 .back-address {
+			margin: auto;
+			padding: 30px 80px;
+		}
+
+		.idcard .section2 p {
+			font-weight: 600;
+			font-size: 30px;
+			line-height: 32px;
+			padding: 0px 5px;
+			margin-bottom: 60px;
+		}
+
+		.idcard .section2 h6 {
+			text-align: center;
+			padding: 0px 5px;
+			color: #e23d3a;
+			margin-top: 20px;
+			margin-bottom: 20px;
+			font-size: 36px;
+			font-weight: 800;
+		}
+
+		.idcard .section2 .address {
+			text-align: center;
+			margin-top: 0px;
+			line-height: 40px;
+			font-size: 32px;
+			font-weight: 700;
+		}
+
+		.idcard .section2 .blood-group {
+			text-align: center;
+			margin-top: 80px;
+			margin-bottom: 200px;
+			font-size: 34px;
+			font-weight: 700;
+
+		}
+
+		.idcard .section2 .footer-text {
+			margin: 60px 0px;
+			font-size: 30px;
+			margin-left: 100px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="id-card" class="idcard">
+
+		<div class="row">
+			<div class="col-md-12" style="text-align: center">
+				<!-- <button (click)="Downloadpdf(employeeData)" class="save download-pdf">
+            Download Pdf
+          </button> -->
+			</div>
+		</div>
+
+		<div class="section1" id="section1">
+			<div class="img">
+				<img src="{{IMAGE}}" alt="Profile Image" class="circular-image" />
+			</div>
+			<table>
+				<tr>
+					<td style="font-family: 'Calibri', sans-serif;">NAME</td>
+					<td>:</td>
+					<td style="font-family: 'Calibri', sans-serif;">{{NAME}}</td>
+				</tr>
+				<tr>
+					<td style="font-family: 'Calibri', sans-serif;">EMP ID</td>
+					<td>:</td>
+					<td style="font-family: 'Calibri', sans-serif;">{{EMPLOYEEID}}</td>
+				</tr>
+				<tr>
+					<td style="font-family: 'Calibri', sans-serif;">DESG</td>
+					<td>:</td>
+					<td style="font-family: 'Calibri', sans-serif;">ASSISTANT GENERAL MANAGER</td>
+				</tr>
+				<tr>
+					<td style="font-family: 'Calibri', sans-serif;">DEPT</td>
+					<td>:</td>
+					<td style="font-family: 'Calibri', sans-serif;">{{DEPARTMENT}}</td>
+				</tr>
+			</table>
+		</div>
+		<div class="section2" id="section2">
+			<div class="back-address">
+				<p style="font-family: 'Calibri', sans-serif;">
+					This ID Card is the property of <b>Hetero Healthcare Limited</b>. If
+					found, please return it to the address below.
+				</p>
+				<h6 style="font-family: 'Calibri', sans-serif;">HETERO HEALTHCARE LIMITED</h6>
+				<p style="font-family: 'Calibri', sans-serif;" class="address">
+					Sy.No: 83/1, Plot Nos. 16/A/1 &amp; 16/A/2,<br />
+					19th &amp; 20th Floor, Hetero Tower, Commerzone<br />
+					Silpa Gram Craft Village, Madhapur,<br />
+					Hyderabad, Telangana - 500081.<br />
+					Mob: 7386660150
+				</p>
+
+
+				<p style="font-family: 'Calibri', sans-serif;" class="blood-group">Blood Group: {{BLOODGROUP}}</p>
+				<!-- <p class="signature">Signature of the Employee</p> -->
+				<!-- <p class="contact-no">
+        <i>
+          <b>In case of emergency please contact: <br />76370 11100</b>
+        </i>
+      </p> -->
+				<p style="font-family: 'Calibri', sans-serif;" class="footer-text">
+					This Card is issued for identification purpose only and does not
+					authorize the holder to represent the Company in any manner whatsoever.
+				</p>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>
