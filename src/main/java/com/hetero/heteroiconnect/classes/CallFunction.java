@@ -143,6 +143,7 @@ public class CallFunction {
            		    	  String DAYTYPE = rs.getString("DAYTYPE");
            		    	  String employeeid=rs.getString("employeeid");
            		    	  String flexi=rs.getString("flexi");
+           		    	  System.err.println(flexi+"flexi--->");
            		    	  
            		    	  if(BUID.equalsIgnoreCase("10"))
            		    	  {
@@ -518,7 +519,7 @@ public class CallFunction {
            		    			 
            		    			
            		    			
-           		    			if(BUID.equalsIgnoreCase("42")&&(compareValue < 0||compareValue==0))
+           		    			if(flexi.equalsIgnoreCase("0")&&BUID.equalsIgnoreCase("42")&&(compareValue < 0||compareValue==0))
            		    			{
            		    				System.out.println("Yescall");
            		    			 Deduction_Hours= Attenance.CompositesAttendance(att_in , att_out, net_hours_disp ,DAYTYPE,DATEON);

@@ -31,31 +31,31 @@ public class HrAssetRaisingController {
 	}
 
 	@GetMapping(value = "/department", produces = "application/json")
-	@Cacheable("departments")
+	//@Cacheable("departments")
 	public ResponseEntity<List<Master>> getDepartments() {
 		return ResponseEntity.ok(hrAssetRaisingService.getDepartments());
 	}
 
 	@GetMapping(value = "/designation", produces = "application/json")
-	@Cacheable("designations")
+	//@Cacheable("designations")
 	public ResponseEntity<List<Master>> getDesignations() {
 		return ResponseEntity.ok(hrAssetRaisingService.getDesignations());
 	}
 
 	@GetMapping(value = "/manager", produces = "application/json")
-	@Cacheable("managers")
+	//@Cacheable("managers")
 	public ResponseEntity<List<Master>> getManagers() {
 		return ResponseEntity.ok(hrAssetRaisingService.getManagers());
 	}
 
 	@GetMapping(value = "/assettype", produces = "application/json")
-	@Cacheable("assettypes")
+	//@Cacheable("assettypes")
 	public ResponseEntity<List<Master>> getAssetTypes() {
 		return ResponseEntity.ok(hrAssetRaisingService.getAssetTypes());
 	}
 
 	@GetMapping(value = "/domain", produces = "application/json")
-	@Cacheable("domains")
+	//@Cacheable("domains")
 	public ResponseEntity<List<Master>> getDomain() {
 		return ResponseEntity.ok(hrAssetRaisingService.getDomain());
 	}

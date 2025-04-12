@@ -9,20 +9,22 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CacheConfig {
+ 
+
 //	@Bean
 //	public CacheManager cacheManager() {
 //		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-//		cacheManager.setCacheNames(Arrays.asList("taskalignments", "categories", "priorities", "tasktypes", "outcomes",
-//				"activities", "plannedadhoc", "workplaces", "teams","departments","designations","managers","assettypes","domains"));
+//		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
+//				"tasktypes", "outcomes", "activities", "plannedadhoc", "departments", "designations", "managers",
+//				"assettypes", "domains"));
 //		return cacheManager;
 //	}
-
+	
 	@Bean
 	public CacheManager cacheManager() {
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
 		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
-				"tasktypes", "outcomes", "activities", "plannedadhoc", "departments", "designations", "managers",
-				"assettypes", "domains"));
+				"tasktypes", "outcomes", "activities", "plannedadhoc"));
 		return cacheManager;
 	}
 }
