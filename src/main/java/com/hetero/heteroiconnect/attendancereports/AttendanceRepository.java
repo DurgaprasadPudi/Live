@@ -370,4 +370,27 @@ public class AttendanceRepository {
 		attendanceQuery.append(" A.employeesequenceno, A.callname ");
 		attendanceQuery.append(" Order by A.employeesequenceno asc ");
 	}
+	
+	
+	public List<AttendanceLocationPojo> getEmployeebusinessunit(int empId) {
+		StringBuilder locationsQuery = new StringBuilder();
+		 
+		 
+		locationsQuery.append("SELECT b.businessunitid as BUSINESSUNITID, b.name as NAME ");
+		locationsQuery.append("FROM hclhrm_prod.tbl_employee_businessunit e ");
+		locationsQuery.append("LEFT JOIN hclhrm_prod.tbl_employee_primary p ON p.employeeid = e.employeeid ");
+		locationsQuery.append("LEFT JOIN hcladm_prod.tbl_businessunit b ON e.businessunitid = b.businessunitid ");
+		locationsQuery.append("WHERE p.employeesequenceno = ?");
+
+		return jdbcTemplate.query(locationsQuery.toString(), (rs, rowNum) -> {
+			AttendanceLocationPojo locations = new AttendanceLocationPojo();
+			locations.setId(rs.getInt("BUSINESSUNITID"));
+			locations.setName(rs.getString("NAME"));
+			return locations;
+		}, empId);
+	}
+	
+	
+	
+
 }

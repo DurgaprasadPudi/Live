@@ -26,7 +26,16 @@ public class AttendanceController {
 
 	@PostMapping(value = "/data", consumes = "application/json", produces = "application/json")
 	public ResponseEntity<List<Map<String, Object>>> getData(@RequestBody AttendanceFilterPojo attendanceFilterPojo) {
-		System.err.println(attendanceFilterPojo);
 		return ResponseEntity.ok(attendanceService.getData(attendanceFilterPojo));
+	}
+	
+//	@GetMapping(value = "/businessunit", produces = "application/json")
+//	public Object getBusinessUnit() {
+//		return promotionService.getBusinessUnit();
+//	}
+	
+	@PostMapping(value = "/businessunit", consumes = "multipart/form-data", produces = "application/json")
+	public ResponseEntity<List<AttendanceLocationPojo>> getEmployeebusinessunit(@RequestParam(name = "empId") int empId) {
+		return ResponseEntity.ok(attendanceService.getEmployeebusinessunit(empId));
 	}
 }

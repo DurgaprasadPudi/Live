@@ -42,4 +42,16 @@ public class AttendanceService {
 					messageBundleSource.getmessagebycode("attendance.data.error", new Object[] {}));
 		}
 	}
+	  
+	 
+	@Transactional(rollbackFor = Throwable.class)
+	public List<AttendanceLocationPojo> getEmployeebusinessunit(int empId) {
+		try {
+			return attendanceRepository.getEmployeebusinessunit(empId);
+		} catch (Exception e) {
+			logger.error("{} error fetching locations", e.getMessage());
+			throw new LocationsFetchingException(
+					messageBundleSource.getmessagebycode("attendance.locations.error", new Object[] {}));
+		}
+	}
 }
