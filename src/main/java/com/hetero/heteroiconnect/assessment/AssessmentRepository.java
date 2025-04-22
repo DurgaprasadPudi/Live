@@ -1397,10 +1397,7 @@ public class AssessmentRepository {
 				    .append("    AND H.status = 1001\n")
 				    .append("    AND P.STATUS = 1001\n")
 				    .append("    AND h.employeesequenceno NOT IN (10423, 10160, 10182, 20206);");
-
-				
-				  
-				
+ 
 
 				System.out.println(empID+"---"+query12);
 				

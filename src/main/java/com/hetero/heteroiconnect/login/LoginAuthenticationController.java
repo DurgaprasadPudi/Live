@@ -916,14 +916,23 @@ for (Object[] temp : Holidaylist_Obj) {
 		         
 			return response;
 		}
-	 	 
+	 	  
 	 	@PostMapping("hrdocuments")
 			public LinkedHashMap<String, Object> hrdocuments(@RequestBody String login) throws JSONException {
 				LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
 				JSONObject object = new JSONObject(login);
 				
 				//String Sql="SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE FROM hclhrm_prod_others.tbl_hr_documents where  location in(SELECT BU.CALLNAME LOCATION FROM hclhrm_prod.tbl_employee_primary pp  left join hcladm_prod.tbl_businessunit bu on bu.businessunitid=pp.companyid where pp.employeesequenceno="+object.getString("empID")+" AND PP.STATUS=1001)";
-				String Sql="SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE FROM hclhrm_prod_others.tbl_hr_documents where  location in(SELECT BU.CALLNAME LOCATION FROM hclhrm_prod.tbl_employee_primary pp  left join  hcladm_prod.tbl_businessunit bu on bu.businessunitid=pp.companyid  where pp.employeesequenceno="+object.getString("empID")+" AND PP.STATUS=1001) UNION ALL SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE FROM hclhrm_prod_others.tbl_hr_documents where  location in(SELECT BU.CODE LOCATION FROM hclhrm_prod.tbl_employee_primary pp  left join  hcladm_prod.tbl_businessunit bu on bu.businessunitid=pp.companyid  where pp.employeesequenceno="+object.getString("empID")+" AND PP.STATUS=1001) ";
+				String Sql="SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE FROM hclhrm_prod_others.tbl_hr_documents where  location in(SELECT BU.CALLNAME LOCATION FROM hclhrm_prod.tbl_employee_primary pp  left join  hcladm_prod.tbl_businessunit bu on bu.businessunitid=pp.companyid  where pp.employeesequenceno="+object.getString("empID")+" AND PP.STATUS=1001) UNION ALL SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE FROM hclhrm_prod_others.tbl_hr_documents where  location in(SELECT BU.CODE LOCATION FROM hclhrm_prod.tbl_employee_primary pp  left join  hcladm_prod.tbl_businessunit bu on bu.businessunitid=pp.companyid  where pp.employeesequenceno="+object.getString("empID")+" AND PP.STATUS=1001)"
+						+ "UNION ALL " + 
+						"SELECT DISPLAYNAME, PDF_FILE, IMAGE_FILE\r\n" + 
+						"FROM hclhrm_prod_others.tbl_hr_documents\r\n" + 
+						"WHERE location IN (\r\n" + 
+						"    SELECT IF(BU.BUSINESSUNITID in(15,16,33,34),'ASSAM','') AS LOCATION\r\n" + 
+						"    FROM hclhrm_prod.tbl_employee_primary PP\r\n" + 
+						"    LEFT JOIN hcladm_prod.tbl_businessunit BU ON BU.businessunitid = PP.companyid\r\n" + 
+						"    WHERE PP.employeesequenceno = "+object.getString("empID")+" AND PP.STATUS = 1001\r\n" + 
+						")";
 				 List<HrDocuments> Documents=null;
 					
 				 Documents=new ArrayList<HrDocuments>();
