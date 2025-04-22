@@ -1393,16 +1393,16 @@ public class AssessmentRepository {
 				    .append("    LEFT JOIN hclhrm_prod.tbl_employee_professional_contact cc ON cc.employeeid = D.managerid\n")
 				    .append("    LEFT JOIN hcladm_prod.tbl_department AS depart ON depart.DEPARTMENTID = d.DEPARTMENTID\n")
 				    .append("WHERE\n")
-				    .append("    p.employeesequenceno = 10447\n")
+				    .append("    p.employeesequenceno = "+empID+"\n")
 				    .append("    AND H.status = 1001\n")
 				    .append("    AND P.STATUS = 1001\n")
 				    .append("    AND h.employeesequenceno NOT IN (10423, 10160, 10182, 20206);");
 
 				
-				
+				  
 				
 
-				System.out.println(query12);
+				System.out.println(empID+"---"+query12);
 				
 				
 				 List<Map<String, Object>>  row1 = jdbcTemplate.queryForList(query12.toString());

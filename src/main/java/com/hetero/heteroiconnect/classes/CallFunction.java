@@ -975,7 +975,7 @@ public class CallFunction {
            		    		att_req=false;
            		    		//ex.printStackTrace();
            		    	}
-           		    	if(flexi.equalsIgnoreCase("1") && att_req ){
+           		    	if(flexi.equalsIgnoreCase("1") && att_req ||att_req){
            		    		attendance_obj.put("DAF",DAF);
            		    		
            		    		
