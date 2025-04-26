@@ -10,6 +10,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hetero.heteroiconnect.attendancereports.AttendanceDataFetchingException;
 import com.hetero.heteroiconnect.attendancereports.LocationsFetchingException;
 import com.hetero.heteroiconnect.worksheet.exceptionhandler.ErrorResponse;
+import com.hetero.heteroiconnect.worksheet.report.Exception.ManagerAccessDeniedException;
+import com.hetero.heteroiconnect.worksheet.report.Exception.NoDataFoundException;
+import com.hetero.heteroiconnect.worksheet.report.Exception.NotFiledDataException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -35,5 +38,26 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse("Attendance Data Fetching Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
+	
+	 @ExceptionHandler(ManagerAccessDeniedException.class)
+	    public ResponseEntity<ErrorResponse> handleManagerAccessDeniedException(ManagerAccessDeniedException ex) {
+	        //ex.printStackTrace();
+	        ErrorResponse errorResponse = new ErrorResponse("403", ex.getMessage());
+	        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN); 
+	    }
+
+	    @ExceptionHandler(NoDataFoundException.class)
+	    public ResponseEntity<ErrorResponse> handleManagerAccessDeniedException(NoDataFoundException ex) {
+	        //ex.printStackTrace();
+	        ErrorResponse errorResponse = new ErrorResponse("404", ex.getMessage());
+	        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND); 
+	    }
+	    @ExceptionHandler(NotFiledDataException.class)
+	    public ResponseEntity<ErrorResponse> handleManagerAccessDeniedException(NotFiledDataException ex) {
+	        //ex.printStackTrace();
+	        ErrorResponse errorResponse = new ErrorResponse("404", ex.getMessage());
+	        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND); 
+	    }
+
 
 }
