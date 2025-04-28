@@ -305,7 +305,7 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 				data = worksheetRepository.fetchEmployeeWorkDataByDate(tabId, fromDate, toDate);
 			}
 			if (data.isEmpty()) {
-				throw new NotFiledDataException("No Data Found..");
+				throw new NotFiledDataException("No Data Found...");
 			}
 			if (data != null) {
 				for (Object[] row : data) {
