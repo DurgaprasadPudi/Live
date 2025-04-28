@@ -334,14 +334,19 @@
         <artifactId>poi-ooxml-schemas</artifactId>
         <version>4.1.2</version>
     </dependency>
-    
+     
+    <dependency>
+    <groupId>org.apache.xmlbeans</groupId>
+    <artifactId>xmlbeans</artifactId>
+    <version>3.1.0</version> <!-- Compatible with POI 4.1.2 -->
+</dependency>
 
     <!-- Optional: POI Scratchpad for additional Excel functionalities (e.g., chart handling) -->
-    <dependency>
+   <!--  <dependency>
         <groupId>org.apache.poi</groupId>
         <artifactId>poi-scratchpad</artifactId>
         <version>4.1.2</version>
-    </dependency>
+    </dependency> -->
  
       
   
