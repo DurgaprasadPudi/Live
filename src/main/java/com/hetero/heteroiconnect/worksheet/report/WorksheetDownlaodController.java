@@ -35,13 +35,24 @@ public class WorksheetDownlaodController {
 			@RequestParam(value = "teamS", required = false) Integer teamS)
 			throws SQLException, IOException, ExecutionException, InterruptedException {
 
-		if (year == null) {
-			year = 0;
-		}
-		if (month == null) {
-			month = 0;
-		}
-		byte[] excelData = worksheedownloadtService.Download(year, month, employeeid, fromDate, toDate,teamS);
+//		if (year == null) {
+//			year = 0;
+//		}
+//		if (month == null) {
+//			month = 0;
+//		}
+		
+		if (employeeid == null || employeeid.trim().isEmpty()) {
+           // log.error("employeeid is required");
+            throw new IllegalArgumentException("employeeid is required");
+        }
+        int effectiveYear = year != null ? year : 0;
+        int effectiveMonth = month != null ? month : 0;
+        int effectiveTeamS = teamS != null ? teamS : 0; // Handle null teamS
+
+        byte[] excelData = worksheedownloadtService.Download(effectiveYear, effectiveMonth, employeeid, fromDate, toDate, effectiveTeamS);
+		
+		//byte[] excelData = worksheedownloadtService.Download(year, month, employeeid, fromDate, toDate,teamS);
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
