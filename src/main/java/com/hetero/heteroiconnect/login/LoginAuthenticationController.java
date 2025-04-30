@@ -128,6 +128,49 @@ public class LoginAuthenticationController {
 		return response;
 	}
 	
+	
+	
+	@PostMapping("templogin")
+	public LinkedHashMap<String, Object> usertemplogin(@RequestBody String login) throws JSONException {
+		LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
+		JSONObject object = new JSONObject(login);
+		LoginUser user = null;
+		System.out.println("Login"+UPLOADED_FOLDER);
+		user = mstUserRepository.findByUsernameandpasswordTemp(object.getString("userName"), "" + object.get("password"));
+		if(user== null){
+			  String msg = "PLEASE CHECK THE ENTERED USER CREDENTIALS.";
+			  response.put("status",0);
+			  response.put("user",user);
+		}else{
+			List<ReporteeManger> reporteemanger=null;
+			reporteemanger=new ArrayList<ReporteeManger>();
+		    String reporteemanger_QRY = "";
+		    reporteemanger_QRY= "SELECT CONVERT(IFNULL(IS_MANAGER,''),CHAR),CONVERT(IFNULL(MP.EMPLOYEESEQUENCENO,''),CHAR) EMPID,IFNULL(MPRO.EMAIL,''),CONVERT(IFNULL(ST.STATUS,''),CHAR) CODE,IFNULL(ST.NAME,'') FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS MM  ON MM.EMPLOYEEID=A.EMPLOYEEID LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY MP ON MM.MANAGERID=MP.EMPLOYEEID  LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_CONTACT MPRO  ON MPRO.EMPLOYEEID=MP.EMPLOYEEID LEFT JOIN HCLHRM_PROD.tbl_status_codes ST ON  ST.STATUS=MP.STATUS LEFT JOIN (select if(count(*)>0,'Y','N') IS_MANAGER,IFNULL(A.EMPLOYEEID,0) EMPLOYEEID from HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS A join hclhrm_prod.tbl_employee_primary b on b.employeeid=A.managerid where B.employeesequenceno in ("+object.getString("userName")+") LIMIT 1) YY ON 1=1 where A.EMPLOYEESEQUENCENO="+object.getString("userName")+"" ;
+		         List<Object[]> Experience_Obj = entityManager.createNativeQuery(reporteemanger_QRY).getResultList();
+		         for (Object temp[] : Experience_Obj) {
+		        	 ReporteeManger obj1 = new ReporteeManger(temp[0].toString(),temp[1].toString(),temp[2].toString(),temp[3].toString(),temp[4].toString());
+		        	 reporteemanger.add(obj1);
+		         } 
+				
+		         
+		         
+		      // User Track
+		      mstUserRepository.usertrack(object.getString("userName"),"login",object.getString("application"));
+							 
+		         
+			//System.out.println("111");
+			String PWDStr = "WELCOME TO ICONNECT";
+			String PWDMsg = PWDStr.replaceAll(" ", "%20");
+			response.put("status",1);
+			response.put("user",user);
+			response.put("Manger",reporteemanger);
+			
+		}
+		return response;
+	}
+	
+	
+	
 	// Employee Experience
 	
 	@PostMapping("experience")

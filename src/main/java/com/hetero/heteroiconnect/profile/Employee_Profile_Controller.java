@@ -118,6 +118,27 @@ public class Employee_Profile_Controller {
 	    		return response;
 	    	}
 	        
+	        @PostMapping("employee_view_temp")
+	    	public LinkedHashMap<String, Object> usertemp(@RequestBody String login) throws JSONException {
+	    		LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
+	    		JSONObject object = new JSONObject(login);
+	    	 
+	    		LoginUser user = null;
+	    		    
+	    		 user = mstUserRepository.findByUsernameTemp(
+	    					object.getString("userName"));
+	    		 JSONArray Values = new JSONArray();
+	    		  
+	    		 Values=empreposity.Request_Data(object.getString("userName"),object.getString("REQUESTTYPE"));
+	    	 
+	    		 
+	    			  response.put("Previous_Fields",user);
+	    			  response.put("Request_Fields",Values);
+	    		 
+	    		return response;
+	    	}
+	        
+	        
 	        @PostMapping("hr_view")
 	    	public LinkedHashMap<String, Object> hr_view(@RequestBody String login) throws JSONException {
 	    		LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
