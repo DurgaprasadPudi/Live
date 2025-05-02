@@ -13,6 +13,7 @@ import javax.persistence.PersistenceContext;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,9 @@ public class LeavemangementController {
 	    
 	    @Autowired
 	    LeavequotaRepositry reposity;
+	    
+		@Autowired
+	 	private JdbcTemplate jdbcTemplate;
 	    
 	    
 		 	@PostMapping("Leavetypes")
@@ -97,7 +101,19 @@ public class LeavemangementController {
 				return response;
 			}
 		 	
-		 	
+ 
+		 
+
+		 	public Map<String, Object> getDateValidation(String fromDate, String empId) {
+		 	    String sql = "SELECT MAX(d.fromdate) AS FROMDATE, " +
+		 	                 "IF(MAX(d.fromdate) <= ?, 'TRUE', 'FALSE') AS DATE_VALID " +
+		 	                 "FROM hclhrm_prod_others.tbl_iconnect_transaction_dates d " +
+		 	                 "LEFT JOIN hclhrm_prod.tbl_employee_primary p ON p.companyid = d.businessunitid " +
+		 	                 "WHERE d.transactiontypeid = 1 AND p.employeesequenceno = ?";
+
+		 	    return jdbcTemplate.queryForMap(sql, fromDate, empId);
+		 	}
+
 		 	
 		 	@SuppressWarnings("unchecked")
 			@PostMapping("eligibleleaves")
@@ -117,7 +133,13 @@ public class LeavemangementController {
 				 
 				// SelectedLeaveType!="LOP" && SelectedLeaveType!="OD" && SelectedLeaveType!="WFH"
 				 
-				 
+				 //String Date_Validations
+				  
+					    Map<String, Object> result = getDateValidation(object.getString("fromdate"), object.getString("empID"));
+
+					    String dateValid = result.get("DATE_VALID") != null ? result.get("DATE_VALID").toString() : "FALSE";
+					    String maxFromDate = result.get("FROMDATE") != null ? result.get("FROMDATE").toString() : null;
+ 
 				 if(!object.getString("leavetype").equalsIgnoreCase("LOP")
 						 &&!object.getString("leavetype").equalsIgnoreCase("OD")&&!object.getString("leavetype").equalsIgnoreCase("WFH"))
 				 
@@ -306,7 +328,8 @@ public class LeavemangementController {
 		         
 		         Values.add(addobj);
 				 
-				  
+		         response.put("Datevalidations",dateValid); 
+		         response.put("StartDate",maxFromDate); 
 			     response.put("eligibleleaves",Values); 
 			         
 				return response;
