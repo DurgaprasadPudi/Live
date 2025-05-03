@@ -9,6 +9,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hetero.heteroiconnect.attendancereports.AttendanceDataFetchingException;
 import com.hetero.heteroiconnect.attendancereports.LocationsFetchingException;
+import com.hetero.heteroiconnect.requisition.forms.UploadPositionException;
 import com.hetero.heteroiconnect.worksheet.exceptionhandler.ErrorResponse;
 import com.hetero.heteroiconnect.worksheet.report.Exception.ManagerAccessDeniedException;
 import com.hetero.heteroiconnect.worksheet.report.Exception.NoDataFoundException;
@@ -59,5 +60,10 @@ public class GlobalExceptionHandler {
 	        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND); 
 	    }
 
+	    @ExceptionHandler(UploadPositionException.class)
+		public ResponseEntity<ErrorResponse> handleException(UploadPositionException ex) {
+			ErrorResponse errorResponse = new ErrorResponse("upload error", ex.getMessage());
+			return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 
 }
