@@ -1,22 +1,22 @@
 package com.hetero.heteroiconnect.worksheet.report.entity;
 
-public class ErrorResponse {
-	private int status;
+public class ReportErrorResponse {
+	private String status;
 	private String message;
 
-	public ErrorResponse(int status, String message) {
+	public ReportErrorResponse(String status, String message) {
 		this.status=status;
 		this.message=message;
 	}
 	
-	public ErrorResponse() {
+	public ReportErrorResponse() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public int getStatus() {
+	public String getStatus() {
 		return status;
 	}
-	public void setStatus(int status) {
+	public void setStatus(String status) {
 		this.status = status;
 	}
 	public String getMessage() {

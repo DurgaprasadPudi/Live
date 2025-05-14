@@ -25,7 +25,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.hetero.heteroiconnect.worksheet.report.Exception.NoDataFoundException;
+ 
 import com.hetero.heteroiconnect.worksheet.report.Exception.NotFiledDataException;
 import com.hetero.heteroiconnect.worksheet.report.entity.EmployeeWorksheetDTO;
 import com.hetero.heteroiconnect.worksheet.report.entity.TeamDTO;
@@ -54,7 +54,7 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 			}
 
 			if (data.isEmpty()) {
-				throw new NoDataFoundException("No data found for the given parameters.");
+				throw new NotFiledDataException("No data found for the given parameters.");
 			}
 
 			Sheet sheet = workbook.createSheet("Worksheet");
@@ -62,97 +62,166 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 			CellStyle timeCellStyle = createTimeCellStyle(workbook);
 
 			Row headerRow = sheet.createRow(0);
-			String[] headers = { "Employee ID", "Task Date", "Team Name", "Employee Name", "Time Block",
-					"Task Description", "Project Name", "Module", "Dependent Person", "Category Name", "Activity Name",
-					"Priority Name", "Outcome Name", "Task Type Name", "Planned Adhoc Name", "Task Alignment Name",
-					"Start Time", "End Time", "Duration", "Remarks", "Workplace Name", "Status", "iconnect_in",
-					"iconnect_out", "iconnect_duration" };
+			String[] headers = getHeaders();
 			populateHeaderRow(headerRow, headers, headerCellStyle);
 
 			AtomicInteger rowNum = new AtomicInteger(1);
 			data.forEach(d -> populateRow(sheet, rowNum, d, timeCellStyle));
 			IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
+
 		} else if (teamS == 999 && !teams.isEmpty()) {
-			AtomicBoolean dataFound = new AtomicBoolean(false);
-			List<CompletableFuture<Void>> futures = teams.stream().map(team -> {
-				String tabName = (String) team[1];
-				int tabId = (int) team[0];
+			if (!"30546".equals(employeeid) && !"10484".equals(employeeid) && !"30020".equals(employeeid)) {
+				List<EmployeeWorksheetDTO> data;
+				if (year > 0 && month > 0) {
+					List<Object[]> rawData = worksheetRepository.fetchManagerUnderDataByEmployeeIdAndMonth(year, month,
+							employeeid);
+					data = rawData.stream().map(this::mapToDTO).collect(Collectors.toList());
+				} else {
+					List<Object[]> rawData = worksheetRepository
+							.fetchManagerUnderDataByEmployeeIdAndDateRange(employeeid, formDate, toDate);
+					data = rawData.stream().map(this::mapToDTO).collect(Collectors.toList());
+				}
+				if (data.isEmpty()) {
+					throw new NotFiledDataException("No data found for the given parameters.");
+				}
 
-				return CompletableFuture.runAsync(() -> {
-					try {
-						List<EmployeeWorksheetDTO> teamData;
-						if (year > 0 && month > 0) {
-							teamData = worksheetRepository.fetchEmployeeWorksheets(tabId, year, month).stream()
-									.map(this::mapToDTO).collect(Collectors.toList());
-						} else {
-							teamData = worksheetRepository.betweenDateEmployeeWorksheets(tabId, formDate, toDate)
-									.stream().map(this::mapToDTO).collect(Collectors.toList());
-						}
+				Sheet sheet = workbook.createSheet("Manager Report");
+				CellStyle headerCellStyle = createHeaderCellStyle(workbook);
+				CellStyle timeCellStyle = createTimeCellStyle(workbook);
 
-						if (!teamData.isEmpty()) {
-							dataFound.set(true);
-							synchronized (workbook) {
-								Sheet sheet = workbook.createSheet(tabName);
-								CellStyle headerCellStyle = createHeaderCellStyle(workbook);
-								CellStyle timeCellStyle = createTimeCellStyle(workbook);
+				Row headerRow = sheet.createRow(0);
+				String[] headers = getHeaders();
+				populateHeaderRow(headerRow, headers, headerCellStyle);
 
-								Row headerRow = sheet.createRow(0);
-								String[] headers = { "Employee ID", "Task Date", "Team Name", "Employee Name",
-										"Time Block", "Task Description", "Project Name", "Module", "Dependent Person",
-										"Category Name", "Activity Name", "Priority Name", "Outcome Name",
-										"Task Type Name", "Planned Adhoc Name", "Task Alignment Name", "Start Time",
-										"End Time", "Duration", "Remarks", "Workplace Name", "Status", "iconnect_in",
-										"iconnect_out", "iconnect_duration" };
-								populateHeaderRow(headerRow, headers, headerCellStyle);
-
-								AtomicInteger rowNum = new AtomicInteger(1);
-								teamData.forEach(dto -> populateRow(sheet, rowNum, dto, timeCellStyle));
-								IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
-							}
-						}
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				});
-			}).collect(Collectors.toList());
-
-			CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-
-			if (!dataFound.get()) {
-				throw new NoDataFoundException("No data found for the given parameters.");
-			}
-		} else {
-			List<EmployeeWorksheetDTO> teamData;
-			if (year > 0 && month > 0) {
-				teamData = worksheetRepository.fetchEmployeeWorksheets(teamS, year, month).stream().map(this::mapToDTO)
-						.collect(Collectors.toList());
+				AtomicInteger rowNum = new AtomicInteger(1);
+				data.forEach(dto -> populateRow(sheet, rowNum, dto, timeCellStyle));
+				IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
 			} else {
-				teamData = worksheetRepository.betweenDateEmployeeWorksheets(teamS, formDate, toDate).stream()
-						.map(this::mapToDTO).collect(Collectors.toList());
+				AtomicBoolean dataFound = new AtomicBoolean(false);
+				List<CompletableFuture<Void>> futures = teams.stream().map(team -> {
+					String tabName = (String) team[1];
+					int tabId = (int) team[0];
+
+					return CompletableFuture.runAsync(() -> {
+						try {
+							List<EmployeeWorksheetDTO> teamData;
+							if (year > 0 && month > 0) {
+								teamData = worksheetRepository.fetchEmployeeWorksheets(tabId, year, month).stream()
+										.map(this::mapToDTO).collect(Collectors.toList());
+							} else {
+								teamData = worksheetRepository.betweenDateEmployeeWorksheets(tabId, formDate, toDate)
+										.stream().map(this::mapToDTO).collect(Collectors.toList());
+							}
+
+							if (!teamData.isEmpty()) {
+								dataFound.set(true);
+								synchronized (workbook) {
+									Sheet sheet = workbook.createSheet(tabName);
+									CellStyle headerCellStyle = createHeaderCellStyle(workbook);
+									CellStyle timeCellStyle = createTimeCellStyle(workbook);
+
+									Row headerRow = sheet.createRow(0);
+									String[] headers = getHeaders();
+									populateHeaderRow(headerRow, headers, headerCellStyle);
+
+									AtomicInteger rowNum = new AtomicInteger(1);
+									teamData.forEach(dto -> populateRow(sheet, rowNum, dto, timeCellStyle));
+									IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
+								}
+							}
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					});
+				}).collect(Collectors.toList());
+
+				CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+				if (!dataFound.get()) {
+					throw new NotFiledDataException("No data found for the given parameters.");
+				}
+			}
+		}
+		else {
+//			List<EmployeeWorksheetDTO> teamData;
+//			if ("30546".equals(employeeid) || "10484".equals(employeeid) ||  "30020".equals(employeeid)) {
+//				if (year > 0 && month > 0) {
+//					teamData = worksheetRepository.fetchEmployeeWorksheets(teamS, year, month).stream()
+//							.map(this::mapToDTO).collect(Collectors.toList());
+//				} else {
+//					teamData = worksheetRepository.betweenDateEmployeeWorksheets(teamS, formDate, toDate).stream()
+//							.map(this::mapToDTO).collect(Collectors.toList());
+//				}
+//				if (!teamData.get()) {
+//					throw new NoDataFoundException("No data found for the given parameters.");
+//				}
+//			} else {
+//				if (year > 0 && month > 0) {
+//					teamData = worksheetRepository
+//							.fetchManagerUnderDataByEmployeeIdMonth(teamS, employeeid, year, month).stream()
+//							.map(this::mapToDTO).collect(Collectors.toList());
+//				} else {
+//					teamData = worksheetRepository
+//							.fetchManagerUnderDataByEmployeeIdAndDateRangeTeam(teamS, employeeid, formDate, toDate)
+//							.stream().map(this::mapToDTO).collect(Collectors.toList());
+//				}
+//				if (!teamData.get()) {
+//					throw new NoDataFoundException("No data found for the given parameters.");
+//				}
+//				
+//			}
+			List<EmployeeWorksheetDTO> teamData;
+
+			if ("30546".equals(employeeid) || "10484".equals(employeeid) || "30020".equals(employeeid)) {
+			    if (year > 0 && month > 0) {
+			        teamData = worksheetRepository.fetchEmployeeWorksheets(teamS, year, month).stream()
+			                .map(this::mapToDTO)
+			                .collect(Collectors.toList());
+			    } else {
+			        teamData = worksheetRepository.betweenDateEmployeeWorksheets(teamS, formDate, toDate).stream()
+			                .map(this::mapToDTO)
+			                .collect(Collectors.toList());
+			    }
+			} else {
+			    if (year > 0 && month > 0) {
+			        teamData = worksheetRepository.fetchManagerUnderDataByEmployeeIdMonth(teamS, employeeid, year, month).stream()
+			                .map(this::mapToDTO)
+			                .collect(Collectors.toList());
+			    } else {
+			        teamData = worksheetRepository.fetchManagerUnderDataByEmployeeIdAndDateRangeTeam(teamS, employeeid, formDate, toDate).stream()
+			                .map(this::mapToDTO)
+			                .collect(Collectors.toList());
+			    }
+			}
+
+			// ✅ Check if data is empty
+			if (teamData.isEmpty()) {
+			    throw new NotFiledDataException("No data found for the given parameters.");
 			}
 
 			synchronized (workbook) {
-				try {
-					Sheet sheet = workbook.createSheet("worksheet");
-					CellStyle headerCellStyle = createHeaderCellStyle(workbook);
-					CellStyle timeCellStyle = createTimeCellStyle(workbook);
+				Sheet sheet = workbook.createSheet("Worksheet");
+				CellStyle headerCellStyle = createHeaderCellStyle(workbook);
+				CellStyle timeCellStyle = createTimeCellStyle(workbook);
 
-					Row headerRow = sheet.createRow(0);
-					String[] headers = { "Employee ID", "Task Date", "Team Name", "Employee Name", "Time Block",
-							"Task Description", "Project Name", "Module", "Dependent Person", "Category Name",
-							"Activity Name", "Priority Name", "Outcome Name", "Task Type Name", "Planned Adhoc Name",
-							"Task Alignment Name", "Start Time", "End Time", "Duration", "Remarks", "Workplace Name",
-							"Status", "iconnect_in", "iconnect_out", "iconnect_duration" };
-					populateHeaderRow(headerRow, headers, headerCellStyle);
+				Row headerRow = sheet.createRow(0);
+				String[] headers = getHeaders();
+				populateHeaderRow(headerRow, headers, headerCellStyle);
 
-					AtomicInteger rowNum = new AtomicInteger(1);
-					teamData.forEach(dto -> populateRow(sheet, rowNum, dto, timeCellStyle));
-					IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				AtomicInteger rowNum = new AtomicInteger(1);
+				teamData.forEach(dto -> populateRow(sheet, rowNum, dto, timeCellStyle));
+				IntStream.range(0, headers.length).forEach(sheet::autoSizeColumn);
 			}
 
+			try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+				workbook.write(baos);
+				return baos.toByteArray();
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw e;
+			} finally {
+				workbook.close();
+			}
 		}
 
 		try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
@@ -164,6 +233,14 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 		} finally {
 			workbook.close();
 		}
+	}
+
+	private String[] getHeaders() {
+		return new String[] { "Employee ID", "Task Date", "Team Name", "Employee Name", "Time Block",
+				"Task Description", "Project Name", "Module", "Dependent Person", "Category Name", "Activity Name",
+				"Priority Name", "Outcome Name", "Task Type Name", "Planned Adhoc Name", "Task Alignment Name",
+				"Start Time", "End Time", "Duration", "Remarks", "Workplace Name", "Status", "iconnect_in",
+				"iconnect_out", "iconnect_duration" };
 	}
 
 	private EmployeeWorksheetDTO mapToDTO(Object[] record) {
@@ -198,14 +275,6 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 				status, Att_in, Att_out, Net_hours);
 	}
 
-//	private void populateHeaderRow(Row headerRow, String[] headers, CellStyle headerCellStyle) {
-//		IntStream.range(0, headers.length).forEach(i -> {
-//			var cell = headerRow.createCell(i);
-//			cell.setCellValue(headers[i]);
-//			cell.setCellStyle(headerCellStyle);
-//		});
-//	}
-	
 	private void populateHeaderRow(Row headerRow, String[] headers, CellStyle headerCellStyle) {
 	    IntStream.range(0, headers.length).forEach(i -> {
 	        Cell cell = headerRow.createCell(i);
@@ -267,59 +336,113 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 		return timeCellStyle;
 	}
 
-	@Override
 	public List<WorksheetEmployees> getEmployees(Integer year, Integer month, String employeeid, String fromDate,
-			String toDate) {
+			String toDate, int teamS) {
 		List<Object[]> teams = worksheetRepository.tabs(employeeid);
-		List<Object[]> data = new ArrayList<>();
 		List<WorksheetEmployees> allData = new ArrayList<>();
-		if (teams == null || teams.isEmpty()) {
-			if (year > 0 && month > 0) {
-				data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeid(employeeid, year, month);
+		List<Object[]> data = new ArrayList<>();
+		List<String> tabsWithNoData = new ArrayList<>();
 
+		if (teamS == 0) {
+			if (year > 0 && month > 0) {
+				data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeids(employeeid, year, month);
+			} else if (fromDate != null && toDate != null) {
+				data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeidfromandtodate(employeeid, fromDate, toDate);
 			} else {
-				data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeid(employeeid, fromDate, toDate);
+				throw new IllegalArgumentException("Both year/month or fromDate/toDate must be provided.");
 			}
-			if (data.isEmpty()) {
+
+			if (data == null || data.isEmpty()) {
 				throw new NotFiledDataException("No Data Found.");
 			}
-			if (data != null) {
-				for (Object[] row : data) {
-					WorksheetEmployees employee = new WorksheetEmployees();
-					employee.setEmployeeId(row[0] != null ? ((Number) row[0]).longValue() : null);
-					employee.setCallName(row[1] != null ? row[1].toString() : null);
-					employee.setTeamName(row[2] != null ? row[2].toString() : null);
-					employee.setEmploymenttype(row[3] != null ? row[3].toString() : null);
-					allData.add(employee);
+			mapDataToEmployees(data, allData);
+
+		} else if (teamS == 999 || teamS <= 0) {
+			if ("30546".equals(employeeid) || "10484".equals(employeeid) || "30020".equals(employeeid) ) {
+				for (Object[] team : teams) {
+					Integer tabId = (Integer) team[0];
+					if (tabId == null || tabId == 0)
+						continue;
+					if (year > 0 && month > 0) {
+						data = worksheetRepository.fetchEmployeeWorkData(tabId, year, month);
+					} else if (fromDate != null && toDate != null) {
+						data = worksheetRepository.fetchEmployeeWorkDataByDate(tabId, fromDate, toDate);
+					} else {
+						throw new IllegalArgumentException("Both year/month or fromDate/toDate must be provided.");
+					}
+
+					if (data != null && !data.isEmpty()) {
+						mapDataToEmployees(data, allData);
+					} else {
+						tabsWithNoData.add("Tab ID: " + tabId + " has no data.");
+					}
 				}
+			} else {
+				if (year > 0 && month > 0) {
+					data = worksheetRepository.findEmployeesByManager(employeeid, year, month);
+				} else if (fromDate != null && toDate != null) {
+					data = worksheetRepository.findEmployeesByManagerByDateRange(employeeid, fromDate, toDate);
+				} else {
+					throw new IllegalArgumentException("Both year/month or fromDate/toDate must be provided.");
+				}
+
+				if (data == null || data.isEmpty()) {
+					throw new NotFiledDataException("No Data Found.");
+				}
+
+				mapDataToEmployees(data, allData);
+			}
+
+		}else {
+			if (!("30546".equals(employeeid)) && !("10484".equals(employeeid)) && !("30020".equals(employeeid))) {
+				if (year > 0 && month > 0) {
+					data = worksheetRepository.findEmployeesByManagerbyTeams(teamS, employeeid, year, month);
+				} else if (fromDate != null && toDate != null) {
+					data = worksheetRepository.findEmployeesByManagerByTeamAndDateRange(teamS, employeeid, fromDate, toDate);
+				} else {
+					throw new IllegalArgumentException("Both year/month or fromDate/toDate must be provided.");
+				}
+			} else {
+				if ("30546".equals(employeeid) || "10484".equals(employeeid) || "30020".equals(employeeid)) {
+					if (year > 0 && month > 0) {
+						System.err.println("coming");  // <-- now this will print
+						data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeidMonth(teamS, year, month);
+						System.err.println("coming");
+					} else if (fromDate != null && toDate != null) {
+						data = worksheetRepository.fetchEmployeeWorkDataByEmployeeeid(teamS, fromDate, toDate);
+					} else {
+						throw new IllegalArgumentException("Both year/month or fromDate/toDate must be provided.");
+					}
+				}
+			}
+			if (data != null && !data.isEmpty()) {
+				mapDataToEmployees(data, allData);
+			} else {
+				tabsWithNoData.add("Tab ID: " + teamS + " has no data.");
 			}
 		}
-		for (Object[] team : teams) {
-			Integer tabId = (Integer) team[0];
-			if (tabId == null || tabId == 0)
-				continue;
 
-			if (year > 0 && month > 0) {
-				data = worksheetRepository.fetchEmployeeWorkData(tabId, year, month);
-			} else {
-				data = worksheetRepository.fetchEmployeeWorkDataByDate(tabId, fromDate, toDate);
+		if (!tabsWithNoData.isEmpty()) {
+			for (String tab : tabsWithNoData) {
+				System.out.println(tab);
 			}
-			if (data.isEmpty()) {
-				throw new NotFiledDataException("No Data Found...");
-			}
-			if (data != null) {
-				for (Object[] row : data) {
-					WorksheetEmployees employee = new WorksheetEmployees();
-					employee.setEmployeeId(row[0] != null ? ((Number) row[0]).longValue() : null);
-					employee.setCallName(row[1] != null ? row[1].toString() : null);
-					employee.setTeamName(row[2] != null ? row[2].toString() : null);
-					employee.setEmploymenttype(row[3] != null ? row[3].toString() : null);
-					allData.add(employee);
-				}
-			}
+		}
+		if (allData.isEmpty()) {
+			throw new NotFiledDataException("No data found.");
 		}
 
 		return allData;
+	}
+
+	private void mapDataToEmployees(List<Object[]> data, List<WorksheetEmployees> allData) {
+		for (Object[] row : data) {
+			WorksheetEmployees employee = new WorksheetEmployees();
+			employee.setEmployeeId(row[0] != null ? ((Number) row[0]).longValue() : null);
+			employee.setCallName(row[1] != null ? row[1].toString() : null);
+			employee.setTeamName(row[2] != null ? row[2].toString() : null);
+			employee.setEmploymenttype(row[3] != null ? row[3].toString() : null);
+			allData.add(employee);
+		}
 	}
 
 	public List<EmployeeWorksheetDTO> getEmployeesByEmployeeid(Integer year, Integer month, String employeeid,
@@ -382,16 +505,13 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 
 	public List<TeamDTO> getTeams(String employeeid) {
 		List<Object[]> teamsFromDb = worksheetRepository.getTeams(employeeid);
-		System.err.println("Teams from DB size: " + teamsFromDb.size());
 		List<TeamDTO> teamDTOList = teamsFromDb.stream().map(
 				row -> new TeamDTO(row[0] != null ? (Integer) row[0] : 0, row[1] != null ? row[1].toString() : null))
 				.collect(Collectors.toList());
 		teamDTOList.stream().anyMatch(team -> employeeid.equals(String.valueOf(team.getTeamId())));
 		teamDTOList.add(new TeamDTO(0, "Self"));
-
 		if (teamsFromDb.size() > 3) {
-			teamDTOList.add(new TeamDTO(999, "AllTeams"));
-
+			teamDTOList.add(new TeamDTO(999, "Team Members"));
 		}
 		return teamDTOList;
 	}
@@ -413,7 +533,7 @@ public class WorksheetDownloadImpl implements WorksheetDownloadService {
 			}
 
 			if (data.isEmpty()) {
-				throw new NoDataFoundException("No data found for the given parameters.");
+				throw new NotFiledDataException("No data found for the given parameters.");
 			}
 
 			// Create Excel sheet content if data exists

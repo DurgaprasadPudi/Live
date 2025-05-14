@@ -27,38 +27,29 @@ public class WorksheetDownlaodController {
 	
 	@PostMapping(value = "/download", consumes = "multipart/form-data", produces = "application/octet-stream")
 	public ResponseEntity<byte[]> fileDownload(
-			@RequestParam(value = "year", required = false) Integer year,
-			@RequestParam(value = "month", required = false) Integer month,
-			@RequestParam(value = "employeeid") String employeeid,
-			@RequestParam(value = "formDate", required = false) String fromDate,
-			@RequestParam(value = "toDate", required = false) String toDate,
-			@RequestParam(value = "teamS", required = false) Integer teamS)
-			throws SQLException, IOException, ExecutionException, InterruptedException {
+	        @RequestParam(value = "year", required = false) Integer year,
+	        @RequestParam(value = "month", required = false) Integer month,
+	        @RequestParam(value = "employeeid") String employeeid,
+	        @RequestParam(value = "formDate", required = false) String fromDate,
+	        @RequestParam(value = "toDate", required = false) String toDate,
+	        @RequestParam(value = "teamS", required = false) Integer teamS)
+	        throws SQLException, IOException, InterruptedException, ExecutionException {
 
-//		if (year == null) {
-//			year = 0;
-//		}
-//		if (month == null) {
-//			month = 0;
-//		}
-		
-		if (employeeid == null || employeeid.trim().isEmpty()) {
-           // log.error("employeeid is required");
-            throw new IllegalArgumentException("employeeid is required");
-        }
-        int effectiveYear = year != null ? year : 0;
-        int effectiveMonth = month != null ? month : 0;
-        int effectiveTeamS = teamS != null ? teamS : 0; // Handle null teamS
+	    if (employeeid == null || employeeid.trim().isEmpty()) {
+	        throw new IllegalArgumentException("employeeid is required");
+	    }
 
-        byte[] excelData = worksheedownloadtService.Download(effectiveYear, effectiveMonth, employeeid, fromDate, toDate, effectiveTeamS);
-		
-		//byte[] excelData = worksheedownloadtService.Download(year, month, employeeid, fromDate, toDate,teamS);
+	    int effectiveYear = year != null ? year : 0;
+	    int effectiveMonth = month != null ? month : 0;
+	    int effectiveTeamS = teamS != null ? teamS : 0;
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-		headers.setContentDispositionFormData("attachment", "worksheet.xlsx");
+	    byte[] excelData = worksheedownloadtService.Download(effectiveYear, effectiveMonth, employeeid, fromDate, toDate, effectiveTeamS);
 
-		return new ResponseEntity<>(excelData, headers, HttpStatus.OK);
+	    HttpHeaders headers = new HttpHeaders();
+	    headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+	    headers.setContentDispositionFormData("attachment", "worksheet.xlsx");
+
+	    return new ResponseEntity<>(excelData, headers, HttpStatus.OK);
 	}
 	
 	@PostMapping(value = "/self", consumes = "multipart/form-data", produces = "application/octet-stream")
@@ -68,7 +59,7 @@ public class WorksheetDownlaodController {
 			@RequestParam(value = "employeeid") String employeeid,
 			@RequestParam(value = "formDate", required = false) String fromDate,
 			@RequestParam(value = "toDate", required = false) String toDate)
-			throws SQLException, IOException, ExecutionException, InterruptedException {
+			throws SQLException, IOException, InterruptedException {
 
 		if (year == null) {
 			year = 0;
@@ -84,23 +75,41 @@ public class WorksheetDownlaodController {
 
 		return new ResponseEntity<>(excelData, headers, HttpStatus.OK);
 	}
-	@PostMapping(value="/getEmployees",consumes = "multipart/form-data", produces = "application/json")
+//	@PostMapping(value="/getEmployees",consumes = "multipart/form-data", produces = "application/json")
+//	public ResponseEntity<?> getEmployees(
+//			@RequestParam(value = "year", required = false) Integer year,
+//			@RequestParam(value = "month", required = false) Integer month,
+//			@RequestParam(value = "employeeid") String employeeid,
+//			@RequestParam(value = "formDate", required = false) String fromDate,
+//			@RequestParam(value = "toDate", required = false) String toDate) {
+//
+//		if (year == null) {
+//			year = 0;
+//		}
+//		if (month == null) {
+//			month = 0;
+//		}
+//		return new ResponseEntity<>(worksheedownloadtService.getEmployees(year, month, employeeid, fromDate, toDate), HttpStatus.OK);
+//
+//	}
+	
+	
+	@PostMapping(value = "/getEmployees", consumes = "multipart/form-data", produces = "application/json")
 	public ResponseEntity<?> getEmployees(
-			@RequestParam(value = "year", required = false) Integer year,
-			@RequestParam(value = "month", required = false) Integer month,
-			@RequestParam(value = "employeeid") String employeeid,
-			@RequestParam(value = "formDate", required = false) String fromDate,
-			@RequestParam(value = "toDate", required = false) String toDate) {
+	        @RequestParam(value = "year", defaultValue = "0") Integer year,
+	        @RequestParam(value = "month", defaultValue = "0") Integer month,
+	        @RequestParam(value = "employeeid") String employeeid,
+	        @RequestParam(value = "formDate", required = false) String fromDate,
+	        @RequestParam(value = "toDate", required = false) String toDate,
+	        @RequestParam(value = "teamS", defaultValue = "0") Integer teamS) {
 
-		if (year == null) {
-			year = 0;
-		}
-		if (month == null) {
-			month = 0;
-		}
-		return new ResponseEntity<>(worksheedownloadtService.getEmployees(year, month, employeeid, fromDate, toDate), HttpStatus.OK);
+	    // Logging teamS value
+	    System.err.println("teamS: " + teamS);
 
+	    // Call your service to get employees
+	    return new ResponseEntity<>(worksheedownloadtService.getEmployees(year, month, employeeid, fromDate, toDate, teamS), HttpStatus.OK);
 	}
+
 
 	@PostMapping(value="/getEmployeesbyid",consumes = "multipart/form-data", produces = "application/json")
 	public ResponseEntity<?> getEmployeesByEmployeeid(
