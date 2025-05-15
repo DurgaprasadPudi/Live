@@ -17,7 +17,7 @@ public class CacheConfig {
 //		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
 //				"tasktypes", "outcomes", "activities", "plannedadhoc", "departments", "designations", "managers",
 //				"assettypes", "domains"));
-//		return cacheManager;
+//		return cacheManager; 
 //	}
 	
 	@Bean
