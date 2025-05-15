@@ -335,7 +335,7 @@ public class LoginAuthenticationController {
 //		         }
 		         else
 		         {
-		        	 
+		        	 // logs
 		        	 values=call.proc_with_resultset(object.getString("empID"),fromdate,todate,BUID,COLORS,comparedateTodayformat); 
 					  
 		         }
