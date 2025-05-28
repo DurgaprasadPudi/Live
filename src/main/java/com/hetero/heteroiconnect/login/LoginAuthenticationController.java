@@ -1060,5 +1060,65 @@ for (Object[] temp : Holidaylist_Obj) {
 
 	 	        return response;
 	 	    }
+	 	  
+	 	  
+	 	  ///Iris 
+	 	  
+	   
+ 
+	 	    @PostMapping("/Employee_status")
+	 	    public List<Map<String, Object>> getEmployeeStatus(@RequestBody String login) {
+	 	    	
+	 	    	LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
+				JSONObject object = new JSONObject(login);
+	 	        
+ 
+	 	        String sql = "SELECT A.EMPLOYEESEQUENCENO AS EMPID, A.CALLNAME AS NAME, STATUS.NAME AS STATUS, " +
+	 	                "co.NAME AS COSTCENTER, GEN.NAME AS GENDER, EMPLO.NAME AS EMPLOYMENT_TYPE, " +
+	 	                "IFNULL(STROKE.NAME,'--') AS INCREMENT_TYPE, " +
+	 	                "IFNULL(IF(STATUS.NAME='ACTIVE','--',HR.DATE),'') AS LWD, " +
+	 	                "DATE_FORMAT(A.DATEOFBIRTH,'%d-%m-%Y') AS DOB, " +
+	 	                "IFNULL(DATE_FORMAT(PROFILE.DATEOFJOIN,'%d-%m-%Y'),'') AS DOJ, " +
+	 	                "BU.NAME AS DIVISION, IFNULL(DES.NAME,'') AS DESIGNATION, IFNULL(DEP.NAME,'') AS DEPARTMENT, " +
+	 	                "CONCAT(MN.EMPLOYEESEQUENCENO,'-',MN.CALLNAME) AS Reportee, MS.NAME AS Reportee_Status, " +
+	 	                "IFNULL(PRO.EMAIL,'') AS PROEMAIL, IFNULL(D.EMAIL,'') AS PEMAIL, " +
+	 	                "IFNULL(C.SALESOFFICENAME,'--') AS SALE_HQ_Name, IFNULL(B.SALESOFFFICE,'--') AS SALE_HQ_Code, " +
+	 	                "IFNULL(PRO.MOBILE,'') AS PROFESSIONAL_MOBILE, IFNULL(D.MOBILE,'') AS PERSONAL_MOBILE, " +
+	 	                "IFNULL(D.MOBILE,'') AS PERSONAL_PHONE " +
+	 	                "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A " +
+	 	                "LEFT JOIN HCLADM_PROD.TBL_STATUS_CODES STATUS ON A.STATUS = STATUS.STATUS " +
+	 	                "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID " +
+	 	                "LEFT JOIN hclhrm_prod.tbl_employee_personal_contact D ON A.EMPLOYEEID = D.EMPLOYEEID " +
+	 	                "LEFT JOIN hclhrm_prod.tbl_employee_profile PROFILE ON A.EMPLOYEEID = PROFILE.EMPLOYEEID " +
+	 	                "LEFT JOIN hclhrm_prod.tbl_employee_professional_details DD ON A.EMPLOYEEID = DD.EMPLOYEEID " +
+	 	                "LEFT JOIN HCLADM_PROD.TBL_DEPARTMENT DEP ON DD.DEPARTMENTID = DEP.DEPARTMENTID " +
+	 	                "LEFT JOIN HCLADM_PROD.TBL_DESIGNATION DES ON DD.DESIGNATIONID = DES.DESIGNATIONID " +
+	 	                "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY MN ON DD.MANAGERID = MN.EMPLOYEEID " +
+	 	                "LEFT JOIN hclhrm_prod.tbl_status_codes MS ON MS.STATUS = MN.STATUS " +
+	 	                "LEFT JOIN hclhrm_prod.tbl_employee_professional_contact PRO ON A.EMPLOYEEID = PRO.EMPLOYEEID " +
+	 	                "LEFT JOIN HCLHRM_PROD_OTHERS.TBL_EMPLOYEE_SALESOFFICE B ON A.EMPLOYEEID = B.EMPLOYEEID " +
+	 	                "LEFT JOIN HCLHRM_PROD_OTHERS.TBL_SALESOFFICE C ON B.SALESOFFFICE = C.SALESOFFICECODE " +
+	 	                "LEFT JOIN HCLHRM_PROD.tbl_employment_types EMPLO ON A.EMPLOYMENTTYPEID = EMPLO.EMPLOYMENTTYPEID " +
+	 	                "LEFT JOIN HCLADM_PROD.tbl_increment_type STROKE ON DD.INCREMENTTYPEID = STROKE.INCREMENTTYPEID " +
+	 	                "LEFT JOIN HCLADM_PROD.tbl_gender GEN ON A.GENDER = GEN.GENDER " +
+	 	                "LEFT JOIN hcladm_prod.tbl_costcenter co ON co.COSTCENTERID = A.COSTCENTERID " +
+	 	                "LEFT JOIN (SELECT EMPLOYEEID, MAX(LASTWORKINGDATE) AS DATE FROM HCLHRM_PROD.TBL_EMPLOYEE_HRACTIONS GROUP BY EMPLOYEEID) HR " +
+	 	                "ON A.EMPLOYEEID = HR.EMPLOYEEID " +
+	 	                "WHERE A.EMPLOYEESEQUENCENO = ? " +
+	 	                "GROUP BY A.EMPLOYEEID " +
+	 	                "ORDER BY A.EMPLOYEESEQUENCENO";
+
+	 	        List<Map<String, Object>> result = new ArrayList<>();
+
+	 	        try {
+	 	            result = jdbcTemplate.queryForList(sql, object.getString("Userid"));
+	 	        } catch (Exception e) {
+	 	                  }
+
+	 	        //long end = System.currentTimeMillis();
+	 	        
+	 	        return result;
+	 	    }
+	 	  
  
 }

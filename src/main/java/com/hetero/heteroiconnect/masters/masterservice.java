@@ -904,13 +904,62 @@ public class masterservice {
 			}
 		}
 
+//		public Object leavebalanceEligibleEmp(String employeeSequenceNo) {
+//			String sql = "SELECT P.employeesequenceno AS 'EmployeeSeq', p.employeeid as 'Employeeid', ST.NAME AS 'STATUS', P.callname AS 'Employeename', IFNULL(b.dateofjoin, '0000-00-00') AS 'DOJ', BU.NAME AS 'BUNAME', de.name AS 'Department', des.name AS 'Designation',CONCAT(\r\n"
+//					+ "        TIMESTAMPDIFF(YEAR, b.dateofjoin, CURDATE()), ' years ', \r\n"
+//					+ "        TIMESTAMPDIFF(MONTH, b.dateofjoin, CURDATE()) % 12, ' months'\r\n"
+//					+ "    ) AS 'Experience' FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY P LEFT JOIN HCLHRM_PROD.tbl_status_codes ST ON ST.STATUS = P.STATUS LEFT JOIN hcladm_prod.tbl_businessunit bu ON bu.businessunitid = p.companyid LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE b ON b.employeeid = p.employeeid LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS d ON p.EMPLOYEEID = d.EMPLOYEEID LEFT JOIN hcladm_prod.tbl_department de ON de.departmentid = d.departmentid LEFT JOIN hcladm_prod.tbl_designation des ON des.designationid = d.designationid LEFT JOIN hcladm_prod.tbl_costcenter cos ON cos.costcenterid = p.costcenterid WHERE p.status IN (1001) and cos.name='OFFICE' AND bu.callname IN (SELECT BUP.CALLNAME FROM hclhrm_prod.tbl_employee_primary p LEFT JOIN hcladm_prod.tbl_businessunit bup ON p.companyid = bup.businessunitid WHERE p.employeesequenceno = ?)  ORDER BY P.employeesequenceno";
+//			return jdbcTemplate.queryForList(sql, employeeSequenceNo);
+//		}
+		
+		
+		
 		public Object leavebalanceEligibleEmp(String employeeSequenceNo) {
-			String sql = "SELECT P.employeesequenceno AS 'EmployeeSeq', p.employeeid as 'Employeeid', ST.NAME AS 'STATUS', P.callname AS 'Employeename', IFNULL(b.dateofjoin, '0000-00-00') AS 'DOJ', BU.NAME AS 'BUNAME', de.name AS 'Department', des.name AS 'Designation',CONCAT(\r\n"
-					+ "        TIMESTAMPDIFF(YEAR, b.dateofjoin, CURDATE()), ' years ', \r\n"
-					+ "        TIMESTAMPDIFF(MONTH, b.dateofjoin, CURDATE()) % 12, ' months'\r\n"
-					+ "    ) AS 'Experience' FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY P LEFT JOIN HCLHRM_PROD.tbl_status_codes ST ON ST.STATUS = P.STATUS LEFT JOIN hcladm_prod.tbl_businessunit bu ON bu.businessunitid = p.companyid LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE b ON b.employeeid = p.employeeid LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS d ON p.EMPLOYEEID = d.EMPLOYEEID LEFT JOIN hcladm_prod.tbl_department de ON de.departmentid = d.departmentid LEFT JOIN hcladm_prod.tbl_designation des ON des.designationid = d.designationid LEFT JOIN hcladm_prod.tbl_costcenter cos ON cos.costcenterid = p.costcenterid WHERE p.status IN (1001) and cos.name='OFFICE' AND bu.callname IN (SELECT BUP.CALLNAME FROM hclhrm_prod.tbl_employee_primary p LEFT JOIN hcladm_prod.tbl_businessunit bup ON p.companyid = bup.businessunitid WHERE p.employeesequenceno = ?)  ORDER BY P.employeesequenceno";
-			return jdbcTemplate.queryForList(sql, employeeSequenceNo);
+		    StringBuffer sql = new StringBuffer();
+	 
+		    sql.append("SELECT ");
+		    sql.append("P.employeesequenceno AS 'EmployeeSeq', ");
+		    sql.append("P.employeeid AS 'Employeeid', ");
+		    sql.append("ST.NAME AS 'STATUS', ");
+		    sql.append("P.callname AS 'Employeename', ");
+		    sql.append("IFNULL(B.dateofjoin, '0000-00-00') AS 'DOJ', ");
+		    sql.append("BU.NAME AS 'BUNAME', ");
+		    sql.append("DE.name AS 'Department', ");
+		    sql.append("DES.name AS 'Designation', ");
+		    sql.append("PC.email AS 'EMPLOYEEMAIL', ");
+		    sql.append("M.callname AS 'ManagerName', ");
+		    sql.append("MPC.email AS 'ManagerEmail', ");
+		    sql.append("CONCAT( ");
+		    sql.append("TIMESTAMPDIFF(YEAR, B.dateofjoin, CURDATE()), ' years ', ");
+		    sql.append("TIMESTAMPDIFF(MONTH, B.dateofjoin, CURDATE()) % 12, ' months' ");
+		    sql.append(") AS 'Experience' ");
+	 
+		    sql.append("FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY P ");
+		    sql.append("LEFT JOIN HCLHRM_PROD.tbl_status_codes ST ON ST.STATUS = P.STATUS ");
+		    sql.append("LEFT JOIN hcladm_prod.tbl_businessunit BU ON BU.businessunitid = P.companyid ");
+		    sql.append("LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE B ON B.employeeid = P.employeeid ");
+		    sql.append("LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS D ON P.employeeid = D.employeeid ");
+		    sql.append("LEFT JOIN hcladm_prod.tbl_department DE ON DE.departmentid = D.departmentid ");
+		    sql.append("LEFT JOIN hcladm_prod.tbl_designation DES ON DES.designationid = D.designationid ");
+		    sql.append("LEFT JOIN hcladm_prod.tbl_costcenter COS ON COS.costcenterid = P.costcenterid ");
+		    sql.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_contact PC ON P.employeeid = PC.employeeid ");
+		    sql.append("LEFT JOIN hclhrm_prod.tbl_employee_primary M ON M.employeeid = D.managerid ");
+		    sql.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_contact MPC ON MPC.employeeid = M.employeeid ");
+	 
+		    sql.append("WHERE P.status IN (1001) ");
+		    sql.append("AND COS.name = 'OFFICE' ");
+		    sql.append("AND BU.callname IN ( ");
+		    sql.append("    SELECT BUP.callname ");
+		    sql.append("    FROM hclhrm_prod.tbl_employee_primary P ");
+		    sql.append("    LEFT JOIN hcladm_prod.tbl_businessunit BUP ON P.companyid = BUP.businessunitid ");
+		    sql.append("    WHERE P.employeesequenceno = ? ");
+		    sql.append(") ");
+	 
+		    sql.append("ORDER BY P.employeesequenceno");
+	 
+		    return jdbcTemplate.queryForList(sql.toString(), employeeSequenceNo);
 		}
+		
 
 		public Object leavebalance(String employeeSequenceNo, String location) {
 			String sql = "SELECT P.EMPLOYEESEQUENCENO,q.EMPLOYEEID,q.LEAVETYPEID,q.YEAR,LE.NAME,q.QUANTITY, q.AVAILABLEQTY, q.USEDQTY ,"

@@ -121,6 +121,8 @@ public class LeavemangementController {
 				LinkedHashMap<String, Object> response = new LinkedHashMap<String, Object>();
 				org.json.JSONObject object = new org.json.JSONObject(login);
 				
+				System.out.println(object);
+				
 				 net.sf.json.JSONObject addobj=new net.sf.json.JSONObject();
 				 /*List<Leavemangement> leavetypes = null;
 			       
