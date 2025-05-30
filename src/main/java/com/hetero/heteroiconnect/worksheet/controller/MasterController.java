@@ -97,4 +97,9 @@ public class MasterController {
 			@RequestParam(name = "name") String name) {
 		return ResponseEntity.ok(masterService.getDependentName(name));
 	}
+	@GetMapping(value = "/dept/{reportingId}", produces = "application/json")
+	public ResponseEntity<List<Master>> getDept(
+			@PathVariable(name = "reportingId")  int reportingId) {
+		return ResponseEntity.ok(masterService.getDept(reportingId));
+	}
 }

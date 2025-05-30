@@ -18,6 +18,7 @@ public class UserWorksheet {
 	@NotNull(message = "Team can't be null")
 	@NotBlank(message = "Team can't be empty")
 	private String team;
+	private String department;
 	@NotNull(message = "Name can't be null")
 	@NotBlank(message = "Name can't be empty")
 	private String name;
@@ -261,6 +262,14 @@ public class UserWorksheet {
 
 	public void setModule(String module) {
 		this.module = module;
+	}
+
+	public String getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(String department) {
+		this.department = department;
 	}
 
 }

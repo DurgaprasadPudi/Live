@@ -21,8 +21,6 @@ import com.hetero.heteroiconnect.worksheet.repository.UserRepository;
 import com.hetero.heteroiconnect.worksheet.service.UserService;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
 
-  
-
 @Service
 public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
@@ -37,6 +35,8 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional(rollbackFor = Throwable.class)
 	public UserWorksheet addUserData(UserWorksheet userWorksheet) {
+		System.err.println(
+				"dept  :" + userWorksheet.getDepartment() + " :employeeId    :" + userWorksheet.getEmployeeId());
 		try {
 			return userRepository.addUserData(userWorksheet);
 		} catch (ValidationException ve) {
