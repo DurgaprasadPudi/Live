@@ -20,8 +20,6 @@ import com.hetero.heteroiconnect.worksheet.model.EmployeeSummary;
 import com.hetero.heteroiconnect.worksheet.model.TotalWorkingHours;
 import com.hetero.heteroiconnect.worksheet.model.UserWorksheet;
 
- 
-
 @Repository
 public class UserRepository {
 	private JdbcTemplate jdbcTemplate;
@@ -72,14 +70,14 @@ public class UserRepository {
 		}
 
 		StringBuilder sql = new StringBuilder();
-		sql.append("INSERT INTO daily_worksheets.tbl_employee_worksheet (")
-				.append("sno, employee_id, task_date, team, name, time_block, task_description, workplace_id, ")
+		sql.append("INSERT INTO daily_worksheets.tbl_employee_worksheet (").append(
+				"sno, employee_id, task_date, team, department_id, name, time_block, task_description, workplace_id, ")
 				.append("project_name, module, dependent_person, category_id, activity_id, priority_id, outcome_id, ")
 				.append("tasktype_id, planned_adhoc_id, taskalignment_id, start_time, end_time, duration, remarks, ")
 				.append("reporting_manager, status, created_date_time) ")
-				.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ")
+				.append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ")
 				.append("ON DUPLICATE KEY UPDATE ")
-				.append("employee_id = VALUES(employee_id), task_date = VALUES(task_date), team = VALUES(team), ")
+				.append("employee_id = VALUES(employee_id), task_date = VALUES(task_date), team = VALUES(team), department_id = VALUES(department_id), ")
 				.append("name = VALUES(name), time_block = VALUES(time_block), task_description = VALUES(task_description), ")
 				.append("workplace_id = VALUES(workplace_id), project_name = VALUES(project_name), ")
 				.append("module = VALUES(module), dependent_person = VALUES(dependent_person), ")
@@ -91,13 +89,14 @@ public class UserRepository {
 				.append("reporting_manager = VALUES(reporting_manager)");
 
 		jdbcTemplate.update(sql.toString(), userWorksheet.getSno(), userWorksheet.getEmployeeId(), formattedDate,
-				userWorksheet.getTeam(), userWorksheet.getName(), userWorksheet.getTimeBlock(),
-				userWorksheet.getTaskDescription(), userWorksheet.getWorkPlaceId(), userWorksheet.getProjectName(),
-				userWorksheet.getModule(), userWorksheet.getDependentPerson(), userWorksheet.getCategoryId(),
-				userWorksheet.getActivityId(), userWorksheet.getPriorityId(), userWorksheet.getOutcomeId(),
-				userWorksheet.getTaskTypeId(), userWorksheet.getPlannedAdhocId(), userWorksheet.getTaskAlignmentId(),
-				updatedStartTime, userWorksheet.getEndTime(), userWorksheet.getDuration(), userWorksheet.getRemarks(),
-				userWorksheet.getReportingManager(), 1001, LocalDateTime.now());
+				userWorksheet.getTeam(), userWorksheet.getDepartment(), userWorksheet.getName(),
+				userWorksheet.getTimeBlock(), userWorksheet.getTaskDescription(), userWorksheet.getWorkPlaceId(),
+				userWorksheet.getProjectName(), userWorksheet.getModule(), userWorksheet.getDependentPerson(),
+				userWorksheet.getCategoryId(), userWorksheet.getActivityId(), userWorksheet.getPriorityId(),
+				userWorksheet.getOutcomeId(), userWorksheet.getTaskTypeId(), userWorksheet.getPlannedAdhocId(),
+				userWorksheet.getTaskAlignmentId(), updatedStartTime, userWorksheet.getEndTime(),
+				userWorksheet.getDuration(), userWorksheet.getRemarks(), userWorksheet.getReportingManager(), 1001,
+				LocalDateTime.now());
 		return userWorksheet;
 	}
 
@@ -110,7 +109,7 @@ public class UserRepository {
 				.append("g.name as taskalignment_name, ")
 				.append("DATE_FORMAT(a.start_time, '%H:%i:00') as start_time, ")
 				.append("DATE_FORMAT(a.end_time, '%H:%i:00') as end_time, ")
-				.append("a.duration, IFNULL(NULLIF(a.remarks, ''), '--') AS remarks, i.name as workplace_name, a.module, a.category_id, a.activity_id, a.priority_id, a.outcome_id, a.tasktype_id, a.workplace_id, a.taskalignment_id, a.planned_adhoc_id, IFNULL(NULLIF(p.callname, ''),'--') AS callname, j.name as teamname ")
+				.append("a.duration, IFNULL(NULLIF(a.remarks, ''), '--') AS remarks, i.name as workplace_name, a.module, a.category_id, a.activity_id, a.priority_id, a.outcome_id, a.tasktype_id, a.workplace_id, a.taskalignment_id, a.planned_adhoc_id, IFNULL(NULLIF(p.callname, ''),'--') AS callname, j.name as teamname, IFNULL(NULLIF(k.departmentid, ''), '') AS departmentid, IFNULL(NULLIF(k.name, ''), '--') AS departmentname ")
 				.append("FROM daily_worksheets.tbl_employee_worksheet a ")
 				.append("LEFT JOIN daily_worksheets.tbl_activity b ON a.activity_id = b.activity_id ")
 				.append("LEFT JOIN daily_worksheets.tbl_category c ON a.category_id = c.category_id ")
@@ -122,6 +121,7 @@ public class UserRepository {
 				.append("LEFT JOIN daily_worksheets.tbl_workplace i ON a.workplace_id = i.workplace_id ")
 				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary  p on a.dependent_person = p.employeesequenceno ")
 				.append("LEFT JOIN daily_worksheets.tbl_teams j on a.team = j.team_id ")
+				.append("LEFT JOIN hcladm_prod.tbl_department  k on a.department_id = k.departmentid ")
 				.append("WHERE a.employee_id = ? ").append("AND a.status = 1001 AND a.manager_status= 'P' ")
 				.append("ORDER BY a.task_date, a.start_time");
 
@@ -145,7 +145,7 @@ public class UserRepository {
 						rs.getInt("category_id"), rs.getInt("activity_id"), rs.getInt("priority_id"),
 						rs.getInt("outcome_id"), rs.getInt("tasktype_id"), rs.getInt("workplace_id"),
 						rs.getInt("taskalignment_id"), rs.getInt("planned_adhoc_id"), rs.getString("callname"),
-						rs.getString("teamname")),
+						rs.getString("teamname"), rs.getString("departmentname"), rs.getString("departmentid")),
 				employeeId).stream().collect(Collectors.toList());
 		return new TotalWorkingHours(workDurationMessage, dailyWorkSheets);
 	}

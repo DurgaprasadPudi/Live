@@ -21,9 +21,9 @@ public interface MasterService {
 
 	public List<Master> getWorkPlace();
 
-	public List<Master> getTeam(int reportingId,int loginby);
-	 
+	public List<Master> getTeam(int reportingId, int loginby);
 
 	public List<Master> getDependentName(String name);
 
+	public List<Master> getDept(int reportingId);
 }

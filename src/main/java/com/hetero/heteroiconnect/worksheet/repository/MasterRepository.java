@@ -6,7 +6,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.hetero.heteroiconnect.worksheet.model.Master;
- 
 
 @Repository
 public class MasterRepository {
@@ -114,7 +113,7 @@ public class MasterRepository {
 //			return team;
 //		}, reportingId, reportingId);
 //	}
-	
+
 	public List<Master> getTeam(int reportingId, int loginBy) {
 		StringBuilder sql = new StringBuilder();
 		sql.append("SELECT DISTINCT a.team_id, a.name ").append("FROM daily_worksheets.tbl_teams a ")
@@ -128,9 +127,9 @@ public class MasterRepository {
 				.append("                THEN ? ").append("                ELSE ? ").append("            END ")
 				.append("        ) AND a.team_id = c.team_id ").append("    ) ").append(") ")
 				.append("AND a.status = 1001 ").append("AND (b.status = 1001 OR b.status IS NULL) ")
- 
-				.append("ORDER BY a.team_id");
- 
+
+				.append("ORDER BY a.team_id DESC");
+
 		return jdbcTemplate.query(sql.toString(), (rs, rowNum) -> {
 			Master team = new Master();
 			team.setId(rs.getInt("team_id"));
@@ -138,7 +137,6 @@ public class MasterRepository {
 			return team;
 		}, reportingId, loginBy, loginBy, reportingId);
 	}
-	
 
 	public List<Master> getDependentName(String name) {
 		StringBuilder query = new StringBuilder();
@@ -151,6 +149,21 @@ public class MasterRepository {
 			dependentName.setName(rs.getString("callname"));
 			return dependentName;
 		}, "%" + name + "%", "%" + name + "%");
-	}  
+	}
+
+	public List<Master> getDept(int reportingId) {
+		String sql = "SELECT DISTINCT a.departmentid,  b.name "
+				+ "FROM hclhrm_prod.tbl_employee_professional_details a "
+				+ "LEFT JOIN hcladm_prod.tbl_department b ON a.departmentid = b.departmentid "
+				+ "WHERE a.managerid = ( "
+				+ "    SELECT employeeid FROM hclhrm_prod.tbl_employee_primary WHERE employeesequenceno = ? " + ") "
+				+ "ORDER BY a.departmentid";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+			Master activity = new Master();
+			activity.setId(rs.getInt("departmentid"));
+			activity.setName(rs.getString("name"));
+			return activity;
+		}, reportingId);
+	}
 
 }
