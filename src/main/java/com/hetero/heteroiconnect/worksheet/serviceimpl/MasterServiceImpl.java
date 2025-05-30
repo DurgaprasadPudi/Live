@@ -68,5 +68,8 @@ public class MasterServiceImpl implements MasterService {
 	public List<Master> getDependentName(String name) {
 		return masterRepository.getDependentName(name);
 	}
-
+	@Transactional(rollbackFor = Throwable.class)
+	public List<Master> getDept(int reportingId) {
+		return masterRepository.getDept(reportingId);
+	}
 }

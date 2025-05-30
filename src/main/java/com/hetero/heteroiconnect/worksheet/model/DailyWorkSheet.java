@@ -36,6 +36,8 @@ public class DailyWorkSheet {
 	private Integer plannedAdhocId;
 	private String dependentPersonName;
 	private String teamName;
+	private String departmentName;
+	private String departmentId;
 
 	public DailyWorkSheet(Integer sno, Integer employeeId, Date taskDate, String team, String name, String timeBlock,
 			String taskDescription, String projectName, String dependentPerson, String categoryName,
@@ -43,7 +45,7 @@ public class DailyWorkSheet {
 			String taskAlignmentName, Time startTime, Time endTime, String duration, String remarks, String workPlace,
 			String module, Integer categoryId, Integer activityId, Integer priorityId, Integer outcomeId,
 			Integer taskTypeId, Integer workPlaceId, Integer taskAlignmentId, Integer plannedAdhocId,
-			String dependentPersonName, String teamName) {
+			String dependentPersonName, String teamName, String departmentName, String departmentId) {
 		super();
 		this.sno = sno;
 		this.employeeId = employeeId;
@@ -77,6 +79,8 @@ public class DailyWorkSheet {
 		this.plannedAdhocId = plannedAdhocId;
 		this.dependentPersonName = dependentPersonName;
 		this.teamName = teamName;
+		this.departmentName = departmentName;
+		this.departmentId = departmentId;
 	}
 
 	public Integer getSno() {
@@ -333,6 +337,22 @@ public class DailyWorkSheet {
 
 	public void setTeamName(String teamName) {
 		this.teamName = teamName;
+	}
+
+	public String getDepartmentName() {
+		return departmentName;
+	}
+
+	public void setDepartmentName(String departmentName) {
+		this.departmentName = departmentName;
+	}
+
+	public String getDepartmentId() {
+		return departmentId;
+	}
+
+	public void setDepartmentId(String departmentId) {
+		this.departmentId = departmentId;
 	}
 
 }

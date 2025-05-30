@@ -1,0 +1,17 @@
+2021-08-09 10:07:16,537 ERROR com.hetero.heteroiconnect.HeteroiconnectApplication [main] Error message
+2021-08-09 10:34:36,170 ERROR com.hetero.heteroiconnect.HeteroiconnectApplication [main] Error message
+2021-08-09 10:44:23,264 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Starting HeteroiconnectApplication on HHCL-CORP-java with PID 12848 (D:\Live\target\classes started by hetero in D:\Live)
+2021-08-09 10:44:23,265 DEBUG com.hetero.heteroiconnect.HeteroiconnectApplication [main] Running with Spring Boot v1.5.6.RELEASE, Spring v4.3.10.RELEASE
+2021-08-09 10:44:23,265 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] The following profiles are active: prod
+2021-08-09 10:44:24,669 INFO com.hetero.heteroiconnect.SimpleCORSFilter [localhost-startStop-1] SimpleCORSFilter init
+2021-08-09 10:44:30,876 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Started HeteroiconnectApplication in 7.816 seconds (JVM running for 8.382)
+2021-08-09 10:45:07,027 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Starting HeteroiconnectApplication on HHCL-CORP-java with PID 9084 (D:\Live\target\classes started by hetero in D:\Live)
+2021-08-09 10:45:07,028 DEBUG com.hetero.heteroiconnect.HeteroiconnectApplication [main] Running with Spring Boot v1.5.6.RELEASE, Spring v4.3.10.RELEASE
+2021-08-09 10:45:07,028 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] The following profiles are active: prod
+2021-08-09 10:45:08,456 INFO com.hetero.heteroiconnect.SimpleCORSFilter [localhost-startStop-1] SimpleCORSFilter init
+2021-08-09 10:45:11,942 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Started HeteroiconnectApplication in 5.122 seconds (JVM running for 5.754)
+2021-08-09 10:47:44,086 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Starting HeteroiconnectApplication on HHCL-CORP-java with PID 23616 (D:\Live\target\classes started by hetero in D:\Live)
+2021-08-09 10:47:44,087 DEBUG com.hetero.heteroiconnect.HeteroiconnectApplication [main] Running with Spring Boot v1.5.6.RELEASE, Spring v4.3.10.RELEASE
+2021-08-09 10:47:44,087 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] The following profiles are active: prod
+2021-08-09 10:47:45,583 INFO com.hetero.heteroiconnect.SimpleCORSFilter [localhost-startStop-1] SimpleCORSFilter init
+2021-08-09 10:47:59,825 INFO com.hetero.heteroiconnect.HeteroiconnectApplication [main] Started HeteroiconnectApplication in 15.946 seconds (JVM running for 16.516)
