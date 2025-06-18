@@ -358,5 +358,63 @@ public class Flexirepository {
 			return empid;
 		}
 		
+	 
+
+		 public List<Form16Info> form16(String userid) {
+		        String sql = "SELECT " +
+		                "A.EMPLOYEESEQUENCENO, " +
+		                "per.PAN, " +
+		                "IFNULL(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 DAY), '%Y%m') THEN B.PAYPERIOD END),4), 'NA') AS FIRSTYEAR, " +
+		                "IFNULL(CONCAT('FY ', CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 DAY), '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED) - 1, '-', " +
+		                "CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 DAY), '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED)), 'NA') AS DISPLAYNAME_FIRSTYEAR, " +
+		                "IFNULL(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END),4), 'NA') AS SECONDYEAR, " +
+		                "IFNULL(CONCAT('FY ', CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED) - 1, '-', " +
+		                "CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 1 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED)), 'NA') AS DISPLAYNAME_SECONDYEAR, " +
+		                "IFNULL(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 3 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END),4), 'NA') AS THIRDYEAR, " +
+		                "IFNULL(CONCAT('FY ', CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 3 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED) - 1, '-', " +
+		                "CAST(LEFT(MAX(CASE WHEN B.PAYPERIOD BETWEEN " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 3 YEAR), '%Y%m') AND " +
+		                "DATE_FORMAT(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-04-01'), INTERVAL 2 YEAR) - INTERVAL 1 DAY, '%Y%m') THEN B.PAYPERIOD END), 4) AS UNSIGNED)), 'NA') AS DISPLAYNAME_THIRDYEAR " +
+		                "FROM hclhrm_prod.tbl_employee_primary A " +
+		                "LEFT JOIN hclhrm_prod.tbl_employee_payperiod_details B ON A.employeeid = B.employeeid " +
+		                "LEFT JOIN hclhrm_prod.tbl_employee_personalinfo per ON per.employeeid = A.employeeid " +
+		                "WHERE A.status IN (1001, 1092, 1401) " +
+		                "AND A.employeeid != 1 " +
+		                "AND B.PAYPERIOD IS NOT NULL " +
+		                "AND A.EMPLOYEESEQUENCENO = ? " +
+		                "GROUP BY A.EMPLOYEEID, A.EMPLOYEESEQUENCENO, per.PAN " +
+		                "ORDER BY FIRSTYEAR DESC, SECONDYEAR DESC, THIRDYEAR DESC";
+
+		        return jdbcTemplate.query(sql, new Object[]{userid}, (rs, rowNum) -> {
+		            Form16Info info = new Form16Info();
+		            info.setEmployeeSequenceNo(rs.getString("EMPLOYEESEQUENCENO"));
+		            info.setPan(rs.getString("PAN"));
+		            info.setFirstYear(rs.getString("FIRSTYEAR"));
+		            info.setDisplayNameFirstYear(rs.getString("DISPLAYNAME_FIRSTYEAR"));
+		            info.setSecondYear(rs.getString("SECONDYEAR"));
+		            info.setDisplayNameSecondYear(rs.getString("DISPLAYNAME_SECONDYEAR"));
+		            info.setThirdYear(rs.getString("THIRDYEAR"));
+		            info.setDisplayNameThirdYear(rs.getString("DISPLAYNAME_THIRDYEAR"));
+		            return info;
+		        });
+		    }
+		
+
 		 
 }

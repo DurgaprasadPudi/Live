@@ -11,6 +11,7 @@ import org.apache.poi.util.IOUtils;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -415,6 +416,53 @@ public class EmployeeflexiController {
 	        }
 	        return null;
 	    } 
+ 	 
+ 	 
+// 	 @PostMapping("/Form16list/{userid}")
+//     public LinkedHashMap<String, Object> form16(@PathVariable String userid) {
+//         LinkedHashMap<String, Object> response = new LinkedHashMap<>();
+//         List<Form16Info> values = reposity.form16(userid);
+//         response.put("Form16list", values);
+//         return response;
+//     }
+
+ 	@GetMapping("/Form16list/{userid}")
+ 	public LinkedHashMap<String, Object> form16(@PathVariable String userid) {
+ 	    LinkedHashMap<String, Object> response = new LinkedHashMap<>();
+ 	    List<Form16Info> values = reposity.form16(userid);
+ 	    response.put("Form16list", values);
+ 	    return response;
+ 	}
+ 	
+ 	
+ 	
+ 	@RequestMapping(value = "/FY/form16/{year}/{PAN}", method = RequestMethod.GET)
+ 	public Object getForm16(@PathVariable("year") String year,
+ 	                       @PathVariable("PAN") String pan) {
+ 	    try {
+ 	        File file = new File("C:/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/ForCast/FileNotFound.pdf");
+
+ 	        // Check for valid PAN
+ 	        if (pan != null && !pan.equalsIgnoreCase("0") && !pan.equalsIgnoreCase("NA")) {
+ 	            File actualFile = new File("C:/Program Files/Apache Software Foundation/Tomcat 9.0/webapps/ForCastbkp/16AANDB" + year + "/" + pan + ".pdf");
+
+ 	            if (actualFile.exists()) {
+ 	                file = actualFile;
+ 	            }
+ 	        }
+
+ 	        try (FileInputStream fis = new FileInputStream(file)) {
+ 	            return IOUtils.toByteArray(fis);  // Still a valid Object (byte[])
+ 	        }
+
+ 	    } catch (IOException e) {
+ 	        e.printStackTrace();
+ 	        return "Error retrieving PDF file.";  // Optional: meaningful message instead of null
+ 	    }
+ 	}
+
+
 			 
+	 
 }
 
