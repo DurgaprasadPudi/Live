@@ -1,8 +1,11 @@
 package com.hetero.heteroiconnect.insurancefiles;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -95,18 +98,43 @@ public class InsuranceFilesRepository {
 		return new ApiResponse(successMessage);
 	}
 
+//	private void saveFileToDisk(MultipartFile file, File targetFile) throws IOException {
+//		File directory = targetFile.getParentFile();
+//		if (!directory.exists()) {
+//			boolean created = directory.mkdirs();
+//			logger.debug("Directory created: {}", created);
+//		}
+//
+//		try (FileOutputStream fos = new FileOutputStream(targetFile)) {
+//			fos.write(file.getBytes());
+//			logger.debug("File saved: {}", targetFile.getAbsolutePath());
+//		}
+//	}
+	
 	private void saveFileToDisk(MultipartFile file, File targetFile) throws IOException {
-		File directory = targetFile.getParentFile();
-		if (!directory.exists()) {
-			boolean created = directory.mkdirs();
-			logger.debug("Directory created: {}", created);
-		}
+	    File directory = targetFile.getParentFile();
+	    if (!directory.exists()) {
+	        boolean created = directory.mkdirs();
+	        logger.debug("Directory created: {}", created);
+	    }
 
-		try (FileOutputStream fos = new FileOutputStream(targetFile)) {
-			fos.write(file.getBytes());
-			logger.debug("File saved: {}", targetFile.getAbsolutePath());
-		}
+	    try (InputStream in = file.getInputStream();
+	         OutputStream out = new BufferedOutputStream(new FileOutputStream(targetFile))) {
+
+	        byte[] buffer = new byte[8192]; // 8 KB buffer
+	        int bytesRead;
+	        while ((bytesRead = in.read(buffer)) != -1) {
+	            out.write(buffer, 0, bytesRead);
+	        }
+
+	        logger.debug("File saved: {}", targetFile.getAbsolutePath());
+	    }
 	}
+
+	
+	
+	
+	
 
 	public InsuranceFileDTO getEmployeeInsuranceDetails(Integer loginId) {
 		String sql = "SELECT a. employeesequenceno as employee_id, b.self_file_path, b.family_file_path, "

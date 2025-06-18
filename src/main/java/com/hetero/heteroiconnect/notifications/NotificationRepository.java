@@ -20,11 +20,16 @@ public class NotificationRepository {
 		List<Map<String, Object>> notifications = new ArrayList<>();
 
 		// Query 1: Manager's Assessment Notifications
-		String managerQuery = "SELECT COUNT(*) FROM assessment_form.tbl_hr_processingempinfo WHERE next_approverid = ? AND STATUS IN (1002, 1003)";
-		int pendingAssessments = jdbcTemplate.queryForObject(managerQuery, Integer.class, empId);
+		StringBuilder managerQuery = new StringBuilder();
+		managerQuery.append(" SELECT COUNT(*) ");
+		managerQuery.append(" FROM assessment_form.tbl_hr_processingempinfo a ");
+		managerQuery.append(" JOIN hclhrm_prod.tbl_employee_primary prime ON a.emp_id=prime.employeesequenceno ");
+		managerQuery.append(
+				" WHERE a.next_approverid = 11903 AND a.STATUS IN (1002, 1003)  AND prime.status IN (1001,1092,1401) ");
+
+		int pendingAssessments = jdbcTemplate.queryForObject(managerQuery.toString(), Integer.class, empId);
 		if (pendingAssessments > 0) {
-			notifications.add(createNotification("Pending Employee Assessment Submission", "/assesmentForm",
-					"AS"));
+			notifications.add(createNotification("Pending Employee Assessment Submission", "/assesmentForm", "AS"));
 		}
 
 		// Query 2: HR Privileges Check
@@ -58,8 +63,7 @@ public class NotificationRepository {
 		boolean hasPendingHrAssessments = !jdbcTemplate.queryForList(hrDataQuery.toString()).isEmpty();
 
 		if (hasHrPrivilege > 0 && hasPendingHrAssessments) {
-			notifications.add(createNotification("Pending Employee Assessment Initiation", "/assessmentProcess",
-					"AI"));
+			notifications.add(createNotification("Pending Employee Assessment Initiation", "/assessmentProcess", "AI"));
 		}
 
 		return notifications;
