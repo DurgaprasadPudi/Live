@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CacheConfig {
- 
 
 //	@Bean
 //	public CacheManager cacheManager() {
@@ -19,12 +18,12 @@ public class CacheConfig {
 //				"assettypes", "domains"));
 //		return cacheManager; 
 //	}
-	
+
 	@Bean
 	public CacheManager cacheManager() {
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
 		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
-				"tasktypes", "outcomes", "activities", "plannedadhoc"));
+				"tasktypes", "outcomes", "activities", "plannedadhoc", "usermanual"));
 		return cacheManager;
 	}
 }

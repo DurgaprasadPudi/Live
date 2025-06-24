@@ -1,10 +1,16 @@
 package com.hetero.heteroiconnect.masterreports;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import com.hetero.heteroiconnect.hrassetrequests.Master;
 
 @Repository
 public class MasterReportRepository {
@@ -15,8 +21,40 @@ public class MasterReportRepository {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
-	public List<EmployeeMasterDetailsDTO> getMasterDetails(String buName) {
+	private void appendCondition(StringBuilder whereClause, String condition) {
+		if (whereClause.length() > 0) {
+			whereClause.append(" AND ");
+		}
+		whereClause.append(condition);
+	}
+
+	public List<EmployeeMasterDetailsDTO> getMasterDetails(MasterDetailsRequest request) {
 		Map<String, EmployeeMasterDetailsDTO> employeeMap = new HashMap<>();
+		List<Object> params = new ArrayList<>();
+		StringBuilder whereClause = new StringBuilder();
+
+		// buName condition
+		if (request.getLocation() != null && !request.getLocation().isEmpty()) {
+			appendCondition(whereClause, "bu.callname = ? ");
+			params.add(request.getLocation());
+		}
+
+		// bu (company IDs) condition
+		if (request.getBu() != null && !request.getBu().isEmpty()) {
+			String placeholders = request.getBu().stream().map(s -> "?").collect(Collectors.joining(","));
+			appendCondition(whereClause, "A.companyid IN (" + placeholders + ")");
+			params.addAll(request.getBu());
+		}
+
+		// status condition
+		if (request.getStatus() != null && !request.getStatus().isEmpty()) {
+			String placeholders = request.getStatus().stream().map(s -> "?").collect(Collectors.joining(","));
+			appendCondition(whereClause, "A.status IN (" + placeholders + ")");
+			params.addAll(request.getStatus());
+		}
+
+		// Final where clause
+		String finalWhereClause = whereClause.length() > 0 ? " WHERE " + whereClause : "";
 
 		// 1. Basic Details Query
 		String basicDetailsQuery = "SELECT A.EMPLOYEESEQUENCENO 'Emp ID', A.CALLNAME 'NAME', STATUS.NAME 'STATUS', "
@@ -39,10 +77,10 @@ public class MasterReportRepository {
 				+ "LEFT JOIN HCLHRM_PROD.tbl_employment_types EMPLO ON A.EMPLOYMENTTYPEID=EMPLO.EMPLOYMENTTYPEID "
 				+ "LEFT JOIN HCLADM_PROD.tbl_increment_type STROKE ON DD.INCREMENTTYPEID=STROKE.INCREMENTTYPEID "
 				+ "LEFT JOIN HCLADM_PROD.tbl_gender GEN ON A.GENDER=GEN.GENDER "
-				+ "LEFT JOIN hcladm_prod.tbl_costcenter co ON co.COSTCENTERID=a.COSTCENTERID "
-				+ "WHERE bu.callname in (?) GROUP BY a.employeeid order by a.employeesequenceno ";
+				+ "LEFT JOIN hcladm_prod.tbl_costcenter co ON co.COSTCENTERID=a.COSTCENTERID " + " " + finalWhereClause
+				+ " " + "GROUP BY a.employeeid order by a.employeesequenceno ";
 
-		jdbcTemplate.query(basicDetailsQuery, new Object[] { buName }, rs -> {
+		jdbcTemplate.query(basicDetailsQuery, params.toArray(), rs -> {
 			String empId = rs.getString("Emp ID");
 			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
 			dto.setEmpId(empId);
@@ -79,10 +117,10 @@ public class MasterReportRepository {
 				+ "LEFT JOIN hclhrm_prod_others.tbl_emp_bank_ifc BIFSC ON A.EMPLOYEEID=BIFSC.EMPID "
 				+ "LEFT JOIN hcladm_prod.tbl_bank_details BANK ON OTHER.BANKID=BANK.BANKID "
 				+ "LEFT JOIN hclhrm_prod.tbl_employee_professional_contact PRO ON A.EMPLOYEEID=PRO.EMPLOYEEID "
-				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID=BU.BUSINESSUNITID "
-				+ "WHERE bu.callname in (?) GROUP BY a.employeeid";
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID=BU.BUSINESSUNITID " + " " + finalWhereClause
+				+ " " + "GROUP BY a.employeeid";
 
-		jdbcTemplate.query(bankQuery, new Object[] { buName }, rs -> {
+		jdbcTemplate.query(bankQuery, params.toArray(), rs -> {
 			String empId = rs.getString("EMPLOYEESEQUENCENO");
 			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
 			dto.setBankName(rs.getString("BANKNAME"));
@@ -103,24 +141,30 @@ public class MasterReportRepository {
 		});
 
 		// 3. Address & Identity Details
-		String addressQuery = "SELECT A.EMPLOYEESEQUENCENO, IFNULL(D.COMMUNICATIONADDRESS2,'') COMMUNICATIONADDRESS2, "
-				+ "IFNULL(D.COMMUNICATIONADDRESS3,'') COMMUNICATIONADDRESS3, IFNULL(D.COMMUNICATIONADDRESS4,'') COMMUNICATIONADDRESS4, "
-				+ "IFNULL(COMMLOC.NAME,'') COMMCITY, IFNULL(COMMSTATELOC.NAME,'') COMMSTATE, IFNULL(D.COMMUNICATIONZIP,'') COMM_ZIP, "
-				+ "IFNULL(D.PERMANENTADDRESS,'') PERMANENTADDRESS, IFNULL(D.PERMANENTADDRESS2,'') PERMANENTADDRESS2, "
-				+ "IFNULL(D.PERMANENTADDRESS3,'') PERMANENTADDRESS3, IFNULL(D.PERMANENTADDRESS4,'') PERMANENTADDRESS4, "
-				+ "IFNULL(PLOC.NAME,'') PCITY, IFNULL(PSLOC.NAME,'') PSTATE, IFNULL(D.PERMANENTZIP,'') PZIPCODE, "
-				+ "IFNULL(INFO.PASSPORTNO,'') 'PASSPORTNO', IFNULL(INFO.AADHAARCARDNO,'') 'AADHAARCARDNO', "
-				+ "IFNULL(INFO.AADHAARUID,'') 'AADHAARUID' " + "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
-				+ "LEFT JOIN hclhrm_prod.tbl_employee_personal_contact D ON A.EMPLOYEEID=D.EMPLOYEEID "
-				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION PLOC ON D.PERMANENTLOCATIONID=PLOC.LOCATIONID "
-				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION PSLOC ON PLOC.PARENT=PSLOC.LOCATIONID "
-				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION COMMLOC ON D.COMMUNICATIONLOCATIONID=COMMLOC.LOCATIONID "
-				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION COMMSTATELOC ON COMMLOC.PARENT=COMMSTATELOC.LOCATIONID "
-				+ "LEFT JOIN hclhrm_prod.tbl_employee_personalinfo INFO ON A.EMPLOYEEID=INFO.EMPLOYEEID "
-				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID=BU.BUSINESSUNITID "
-				+ "WHERE bu.callname in (?) GROUP BY a.employeeid";
+		String addressQuery = "SELECT " + "A.EMPLOYEESEQUENCENO, "
+				+ "IFNULL(D.COMMUNICATIONADDRESS2, '') AS COMMUNICATIONADDRESS2, "
+				+ "IFNULL(D.COMMUNICATIONADDRESS3, '') AS COMMUNICATIONADDRESS3, "
+				+ "IFNULL(D.COMMUNICATIONADDRESS4, '') AS COMMUNICATIONADDRESS4, "
+				+ "IFNULL(COMMLOC.NAME, '') AS COMMCITY, " + "IFNULL(COMMSTATELOC.NAME, '') AS COMMSTATE, "
+				+ "IFNULL(D.COMMUNICATIONZIP, '') AS COMM_ZIP, "
+				+ "IFNULL(D.PERMANENTADDRESS, '') AS PERMANENTADDRESS, "
+				+ "IFNULL(D.PERMANENTADDRESS2, '') AS PERMANENTADDRESS2, "
+				+ "IFNULL(D.PERMANENTADDRESS3, '') AS PERMANENTADDRESS3, "
+				+ "IFNULL(D.PERMANENTADDRESS4, '') AS PERMANENTADDRESS4, " + "IFNULL(PLOC.NAME, '') AS PCITY, "
+				+ "IFNULL(PSLOC.NAME, '') AS PSTATE, " + "IFNULL(D.PERMANENTZIP, '') AS PZIPCODE, "
+				+ "IFNULL(INFO.PASSPORTNO, '') AS PASSPORTNO, " + "IFNULL(INFO.AADHAARCARDNO, '') AS AADHAARCARDNO, "
+				+ "IFNULL(INFO.AADHAARUID, '') AS AADHAARUID, " + "IFNULL(INFO.AADHAARNAME, '') AS AADHAARNAME, "
+				+ "IFNULL(INFO.PAN, '') AS PAN " + "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
+				+ "LEFT JOIN hclhrm_prod.tbl_employee_personal_contact D ON A.EMPLOYEEID = D.EMPLOYEEID "
+				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION PLOC ON D.PERMANENTLOCATIONID = PLOC.LOCATIONID "
+				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION PSLOC ON PLOC.PARENT = PSLOC.LOCATIONID "
+				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION COMMLOC ON D.COMMUNICATIONLOCATIONID = COMMLOC.LOCATIONID "
+				+ "LEFT JOIN HCLLCM_PROD.TBL_LOCATION COMMSTATELOC ON COMMLOC.PARENT = COMMSTATELOC.LOCATIONID "
+				+ "LEFT JOIN hclhrm_prod.tbl_employee_personalinfo INFO ON A.EMPLOYEEID = INFO.EMPLOYEEID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID " + " "
+				+ finalWhereClause + " " + "GROUP BY A.employeeid";
 
-		jdbcTemplate.query(addressQuery, new Object[] { buName }, rs -> {
+		jdbcTemplate.query(addressQuery, params.toArray(), rs -> {
 			String empId = rs.getString("EMPLOYEESEQUENCENO");
 			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
 			dto.setCommunicationAddress2(rs.getString("COMMUNICATIONADDRESS2"));
@@ -139,15 +183,167 @@ public class MasterReportRepository {
 			dto.setPassportNo(rs.getString("PASSPORTNO"));
 			dto.setAadhaarCardNo(rs.getString("AADHAARCARDNO"));
 			dto.setAadhaarUid(rs.getString("AADHAARUID"));
+			dto.setAadhaarName(rs.getString("AADHAARNAME"));
+			dto.setPan(rs.getString("PAN"));
+			// dto.setPrevExp(rs.getString("Prev.Exp"));
+			// dto.setCurExp(rs.getString("Cur.Exp"));
+		});
+		String eDetails = "SELECT " + "A.EMPLOYEESEQUENCENO, " + "A.EMPLOYEEID, "
+				+ "IFNULL(IMPRS.assetpropertyvalue, '0.00') AS IMPRESTAMT, "
+				+ "EDU.QUALIFICATION_DETAILS AS `Education Details` " + "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
+				+ "LEFT JOIN ( " + "    SELECT employeeid, MAX(assetpropertyvalue) AS assetpropertyvalue "
+				+ "    FROM hclhrm_prod.tbl_employee_assets " + "    WHERE assetid = 16 AND status = 1001 "
+				+ "    GROUP BY employeeid " + ") IMPRS ON IMPRS.employeeid = A.EMPLOYEEID "
+				+ "LEFT JOIN HCLHRM_PROD.employee_education_summary EDU " + "    ON A.EMPLOYEEID = EDU.EMPLOYEEID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID " + finalWhereClause
+				+ " GROUP BY A.EMPLOYEEID";
+
+		jdbcTemplate.query(eDetails, params.toArray(), rs -> {
+			String empId = rs.getString("EMPLOYEESEQUENCENO");
+			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
+			dto.setImprestAmt(rs.getString("IMPRESTAMT"));
+			dto.setEducationDetails(rs.getString("Education Details"));
 		});
 
+		String experienceQuery = "SELECT\r\n" + "    a.employeesequenceno,\r\n"
+				+ "    IFNULL(b.`Prev.Exp`, 0) AS pre_exp,\r\n" + "    IFNULL(b.`Cur.Exp`, 0) AS cur_exp\r\n"
+				+ "FROM hclhrm_prod.tbl_employee_primary a\r\n"
+				+ "left join HCLHRM_PROD.employee_experience_summary b on b.`Emp ID` = a.employeesequenceno\r\n"
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON a.COMPANYID = BU.BUSINESSUNITID  " + finalWhereClause
+				+ " GROUP BY a.EMPLOYEEID";
+		jdbcTemplate.query(experienceQuery, params.toArray(), rs -> {
+			String empId = rs.getString("employeesequenceno");
+			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
+			dto.setPrevExp(rs.getString("pre_exp"));
+			dto.setCurExp(rs.getString("cur_exp"));
+		});
+
+		String ctcQuery = "SELECT A.EMPLOYEESEQUENCENO, CTC.EFFECTIVEDATE, "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 22, CTCD.COMPONENTVALUE, 0)), '0') AS 'GROSS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 24, CTCD.COMPONENTVALUE, 0)), '0') AS 'BASIC', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 132, CTCD.COMPONENTVALUE, 0)), '0') AS 'VDA', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 25, CTCD.COMPONENTVALUE, 0)), '0') AS 'HRA', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 26, CTCD.COMPONENTVALUE, 0)), '0') AS 'CA', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 27, CTCD.COMPONENTVALUE, 0)), '0') AS 'MEDICAL', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 28, CTCD.COMPONENTVALUE, 0)), '0') AS 'EDUCATION', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 29, CTCD.COMPONENTVALUE, 0)), '0') AS 'SPL ALLOW', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 18, CTCD.COMPONENTVALUE, 0)), '0') AS 'TRAVEL ALLOWANCE', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 70, CTCD.COMPONENTVALUE, 0)), '0') AS 'KIT ALLOWANCE-E', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 97, CTCD.COMPONENTVALUE, 0)), '0') AS 'LTA-E', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 124, CTCD.COMPONENTVALUE, 0)), '0') AS 'Other ALLOWANCE-E', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 98, CTCD.COMPONENTVALUE, 0)), '0') AS 'BONUS-E', "
+				+ "(IFNULL(MAX(IF(CTCD.COMPONENTID = 24, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 25, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 26, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 27, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 28, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 29, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 18, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 70, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 97, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 98, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 124, CTCD.COMPONENTVALUE, 0)), 0)) AS 'E Gross', "
+				+ "IFNULL(EMPST.STATE, '') AS 'PTSTATE', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 30, CTCD.COMPONENTVALUE, 0)), '0') AS 'PT-D', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 31, CTCD.COMPONENTVALUE, 0)), '0') AS 'PF-D', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 32, CTCD.COMPONENTVALUE, 0)), '0') AS 'ESI-D', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 33, CTCD.COMPONENTVALUE, 0)), '0') AS 'LTA-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 34, CTCD.COMPONENTVALUE, 0)), '0') AS 'PF-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 35, CTCD.COMPONENTVALUE, 0)), '0') AS 'ESI-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 36, CTCD.COMPONENTVALUE, 0)), '0') AS 'BONUS-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 62, CTCD.COMPONENTVALUE, 0)), '0') AS 'GRATUITY-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 39, CTCD.COMPONENTVALUE, 0)), '0') AS 'ANNUAL BONUS-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 63, CTCD.COMPONENTVALUE, 0)), '0') AS 'RETENTION BONUS', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 93, CTCD.COMPONENTVALUE, 0)), '0') AS 'MEDICAL PREMIUM-ANNUAL BENEFITS', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9001, XY.COMPONENTVALUE, 0)), '0') AS 'FUELANDMAINTENANCE', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9002, XY.COMPONENTVALUE, 0)), '0') AS 'OTHERCOMPONENTS', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9003, XY.COMPONENTVALUE, 0)), '0') AS 'MOBILE', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9004, XY.COMPONENTVALUE, 0)), '0') AS 'INTERNET', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9005, XY.COMPONENTVALUE, 0)), '0') AS 'HOUSERENT', "
+				+ "IFNULL(MAX(IF(XX.COMPONENTID = 9006, XY.COMPONENTVALUE, 0)), '0') AS 'DRIVERSALARY', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 129, CTCD.COMPONENTVALUE, 0)), '0') AS 'VARIABLE PAY', "
+				+ "IFNULL(MAX(IF(CTCD.COMPONENTID = 130, CTCD.COMPONENTVALUE, 0)), '0') AS 'Performance Linked Bonus (KRA)', "
+				+ "(" + " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 22 THEN CTCD.COMPONENTVALUE * 12 END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 97 THEN CTCD.COMPONENTVALUE * 12 END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 98 THEN CTCD.COMPONENTVALUE * 12 END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 124 THEN CTCD.COMPONENTVALUE * 12 END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 34 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 35 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 36 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 33 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 39 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 63, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 62 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(CASE WHEN CTCD.COMPONENTID = 93 THEN CTCD.COMPONENTVALUE END), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9001, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9002, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9003, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9004, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9005, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(XX.COMPONENTID = 9006, XY.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 129, CTCD.COMPONENTVALUE, 0)), 0) + "
+				+ " IFNULL(MAX(IF(CTCD.COMPONENTID = 130, CTCD.COMPONENTVALUE, 0)), 0)) AS 'TOTAL_CTC' "
+				+ "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID "
+				+ "LEFT JOIN test.empl_states EMPST ON A.EMPLOYEEID = EMPST.EMPLOYEEID " + "LEFT JOIN ( "
+				+ "SELECT EMPLOYEEID ctcempid, MAX(CTCTRANSACTIONID) Maxid, MAX(EFFECTIVEDATE) EFFECTIVEDATE "
+				+ "FROM HCLHRM_PROD.TBL_EMPLOYEE_CTC GROUP BY EMPLOYEEID " + ") CTC ON CTC.ctcempid = A.EMPLOYEEID "
+				+ "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_CTC_DETAILS CTCD ON CTCD.CTCTRANSACTIONID = CTC.Maxid "
+				+ "LEFT JOIN test.fuel_maintenance XY ON XY.CTCTRANSACTIONID = CTC.Maxid AND XY.employeeid = A.EMPLOYEEID "
+				+ "LEFT JOIN test.tbl_new_components XX ON XX.COMPONENTID = XY.COMPONENTID " + " " + finalWhereClause
+				+ " " + "GROUP BY A.EMPLOYEEID, CTC.EFFECTIVEDATE";
+
+		jdbcTemplate.query(ctcQuery, params.toArray(), rs -> {
+			String empId = rs.getString("EMPLOYEESEQUENCENO");
+			EmployeeMasterDetailsDTO dto = employeeMap.computeIfAbsent(empId, k -> new EmployeeMasterDetailsDTO());
+
+			dto.setEffectiveDate(rs.getString("EFFECTIVEDATE"));
+			dto.setGross(rs.getString("GROSS"));
+			dto.setBasic(rs.getString("BASIC"));
+			dto.setVda(rs.getString("VDA"));
+			dto.setHra(rs.getString("HRA"));
+			dto.setCa(rs.getString("CA"));
+			dto.setMedical(rs.getString("MEDICAL"));
+			dto.setEducation(rs.getString("EDUCATION"));
+			dto.setSplAllow(rs.getString("SPL ALLOW"));
+			dto.setTravelAllowance(rs.getString("TRAVEL ALLOWANCE"));
+			dto.setKitAllowance(rs.getString("KIT ALLOWANCE-E"));
+			dto.setLta(rs.getString("LTA-E"));
+			dto.setOtherAllowance(rs.getString("Other ALLOWANCE-E"));
+			dto.setBonus(rs.getString("BONUS-E"));
+			dto.seteGross(rs.getString("E Gross"));
+			dto.setPtState(rs.getString("PTSTATE"));
+			dto.setPtD(rs.getString("PT-D"));
+			dto.setPfD(rs.getString("PF-D"));
+			dto.setEsiD(rs.getString("ESI-D"));
+			dto.setLtaAnnualBenefits(rs.getString("LTA-ANNUAL BENEFITS"));
+			dto.setPfAnnualBenefits(rs.getString("PF-ANNUAL BENEFITS"));
+			dto.setEsiAnnualBenefits(rs.getString("ESI-ANNUAL BENEFITS"));
+			dto.setBonusAnnualBenefits(rs.getString("BONUS-ANNUAL BENEFITS"));
+			dto.setGratuityAnnualBenefits(rs.getString("GRATUITY-ANNUAL BENEFITS"));
+			dto.setAnnualBonus(rs.getString("ANNUAL BONUS-ANNUAL BENEFITS"));
+			dto.setRetentionBonus(rs.getString("RETENTION BONUS"));
+			dto.setMedicalPremium(rs.getString("MEDICAL PREMIUM-ANNUAL BENEFITS"));
+			dto.setFuelAndMaintenance(rs.getString("FUELANDMAINTENANCE"));
+			dto.setOtherComponents(rs.getString("OTHERCOMPONENTS"));
+			dto.setMobile(rs.getString("MOBILE"));
+			dto.setInternet(rs.getString("INTERNET"));
+			dto.setHouseRent(rs.getString("HOUSERENT"));
+			dto.setDriverSalary(rs.getString("DRIVERSALARY"));
+			dto.setVariablePay(rs.getString("VARIABLE PAY"));
+			dto.setPerformanceLinkedBonus(rs.getString("Performance Linked Bonus (KRA)"));
+			dto.setCtc(rs.getString("TOTAL_CTC"));
+		});
 		List<EmployeeMasterDetailsDTO> sortedList = employeeMap.values().stream()
 				.sorted(Comparator.comparingInt(e -> Integer.parseInt(e.getEmpId()))).collect(Collectors.toList());
-
 		System.err.println("Sorted List Size: " + sortedList.size());
-
 		return employeeMap.values().stream().sorted(Comparator.comparing(EmployeeMasterDetailsDTO::getEmpId))
 				.collect(Collectors.toList());
-
 	}
+
+	public List<Master> getStatusCodes() {
+		String sql = "SELECT status, name FROM HCLADM_PROD.TBL_STATUS_CODES";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> new Master(rs.getInt("status"), rs.getString("name")));
+	}
+
 }

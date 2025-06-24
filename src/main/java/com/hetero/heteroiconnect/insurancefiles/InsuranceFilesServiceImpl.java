@@ -1,10 +1,15 @@
 package com.hetero.heteroiconnect.insurancefiles;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
@@ -16,6 +21,8 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 
 	private final InsuranceFilesRepository insuranceFilesRepository;
 	private MessageBundleSource messageBundleSource;
+	@Value("${insurance.usermanuals.path}")
+	private String directoryPath;
 
 	public InsuranceFilesServiceImpl(InsuranceFilesRepository insuranceFilesRepository,
 			MessageBundleSource messageBundleSource) {
@@ -28,7 +35,6 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		try {
 			return insuranceFilesRepository.uploadFiles(type, files);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new UserWorkSheetUploadException(
 					messageBundleSource.getmessagebycode("insurance.file.error", new Object[] {}), e);
 
@@ -55,6 +61,28 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 					messageBundleSource.getmessagebycode("emp.insurance.details.fetch.error", new Object[] {}), e);
 
 		}
+	}
+
+	public Map<String, byte[]> getUserManuals() {
+		Map<String, byte[]> fileContents = new HashMap<>();
+		try {
+			File folder = new File(directoryPath);
+			File[] files = folder.listFiles();
+
+			if (files != null) {
+				for (File file : files) {
+					if (file.isFile()) {
+						Path filePath = file.toPath();
+						byte[] content = Files.readAllBytes(filePath);
+						fileContents.put(file.getName(), content);
+					}
+				}
+			}
+		} catch (Exception e) {
+			throw new UserWorkSheetUploadException(
+					messageBundleSource.getmessagebycode("emp.insurance.usermanual.error", new Object[] {}), e);
+		}
+		return fileContents;
 	}
 
 }

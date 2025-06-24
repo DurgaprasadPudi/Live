@@ -1,8 +1,11 @@
 package com.hetero.heteroiconnect.insurancefiles;
 
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,5 +41,11 @@ public class InsuranceFilesController {
 	@PostMapping("/emp/{loginId}")
 	public ResponseEntity<InsuranceFileDTO> getEmployeeInsuranceDetails(@PathVariable("loginId") Integer loginId) {
 		return ResponseEntity.ok(insuranceFilesService.getEmployeeInsuranceDetails(loginId));
+	}
+
+	@GetMapping("/usermanual")
+	@Cacheable("usermanual")
+	public ResponseEntity<Map<String, byte[]>> getUserManuals() {
+		return ResponseEntity.ok(insuranceFilesService.getUserManuals());
 	}
 }
