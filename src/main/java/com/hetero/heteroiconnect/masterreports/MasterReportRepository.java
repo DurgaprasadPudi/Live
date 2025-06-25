@@ -51,6 +51,8 @@ public class MasterReportRepository {
 			String placeholders = request.getStatus().stream().map(s -> "?").collect(Collectors.joining(","));
 			appendCondition(whereClause, "A.status IN (" + placeholders + ")");
 			params.addAll(request.getStatus());
+		} else {
+			appendCondition(whereClause, "A.status NOT IN ('1091','1082') ");
 		}
 
 		// Final where clause
@@ -208,7 +210,7 @@ public class MasterReportRepository {
 		String experienceQuery = "SELECT\r\n" + "    a.employeesequenceno,\r\n"
 				+ "    IFNULL(b.`Prev.Exp`, 0) AS pre_exp,\r\n" + "    IFNULL(b.`Cur.Exp`, 0) AS cur_exp\r\n"
 				+ "FROM hclhrm_prod.tbl_employee_primary a\r\n"
-				+ "left join HCLHRM_PROD.employee_experience_summary b on b.`Emp ID` = a.employeesequenceno\r\n"
+				+ "join HCLHRM_PROD.employee_experience_summary b on b.`Emp ID` = a.employeesequenceno\r\n"
 				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON a.COMPANYID = BU.BUSINESSUNITID  " + finalWhereClause
 				+ " GROUP BY a.EMPLOYEEID";
 		jdbcTemplate.query(experienceQuery, params.toArray(), rs -> {
