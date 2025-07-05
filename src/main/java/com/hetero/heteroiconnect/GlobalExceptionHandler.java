@@ -18,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.hetero.heteroiconnect.attendancereports.AttendanceDataFetchingException;
 import com.hetero.heteroiconnect.attendancereports.LocationsFetchingException;
+import com.hetero.heteroiconnect.attendancereports.PayPeriodMonthsFetchingException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.promotion.exception.ErrorMessage;
@@ -151,7 +152,7 @@ public class GlobalExceptionHandler {
 		        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN); 
 		    }
 
-		    
+		      
 			/*
 			 * @ExceptionHandler(NotFiledDataException.class) public
 			 * ResponseEntity<ReportErrorResponse>
@@ -171,5 +172,10 @@ public class GlobalExceptionHandler {
 		 }
 
 
+		 @ExceptionHandler(PayPeriodMonthsFetchingException.class)
+			public ResponseEntity<ErrorResponse> handleException(PayPeriodMonthsFetchingException ex) {
+				ErrorResponse errorResponse = new ErrorResponse("Pay Period Months Fetching Error", ex.getMessage());
+				return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+			}
 		    
 }

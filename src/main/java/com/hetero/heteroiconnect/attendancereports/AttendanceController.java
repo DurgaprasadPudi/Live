@@ -28,14 +28,20 @@ public class AttendanceController {
 	public ResponseEntity<List<Map<String, Object>>> getData(@RequestBody AttendanceFilterPojo attendanceFilterPojo) {
 		return ResponseEntity.ok(attendanceService.getData(attendanceFilterPojo));
 	}
-	
-//	@GetMapping(value = "/businessunit", produces = "application/json")
-//	public Object getBusinessUnit() {
-//		return promotionService.getBusinessUnit();
-//	}
-	
+
 	@PostMapping(value = "/businessunit", consumes = "multipart/form-data", produces = "application/json")
-	public ResponseEntity<List<AttendanceLocationPojo>> getEmployeebusinessunit(@RequestParam(name = "empId") int empId) {
+	public ResponseEntity<List<AttendanceLocationPojo>> getEmployeebusinessunit(
+			@RequestParam(name = "empId") int empId) {
 		return ResponseEntity.ok(attendanceService.getEmployeebusinessunit(empId));
+	}
+
+	@PostMapping(value = "/payperiodmonths", consumes = "multipart/form-data", produces = "application/json")
+	public ResponseEntity<List<Map<String, Object>>> getPayPeriodMonths(
+			@RequestParam(name = "empId", required = false) Integer empId,
+			@RequestParam(name = "location", required = false) Integer location,
+			@RequestParam(name = "bu", required = false) List<Integer> bu,
+			@RequestParam(name = "callName", required = false) String callName,
+			@RequestParam(name = "isPayPeriod") boolean isPayPeriod) {
+		return ResponseEntity.ok(attendanceService.getPayPeriodMonths(empId, location, bu, callName, isPayPeriod));
 	}
 }

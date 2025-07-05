@@ -2,11 +2,13 @@ package com.hetero.heteroiconnect.attendancereports;
 
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +17,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class AttendanceRepository {
 	private JdbcTemplate jdbcTemplate;
-	private static final String payPeriodDatesQuery = " SELECT fromdate,todate FROM hclhrm_prod_others.tbl_iconnect_transaction_dates WHERE businessunitid=? AND transactionduration=? ";
 	private static final String status = " A.status in(1001,1092,1401) ";
 
 	public AttendanceRepository(JdbcTemplate jdbcTemplate) {
@@ -170,17 +171,63 @@ public class AttendanceRepository {
 	}
 
 	public Map<String, Object> generateDates(AttendanceFilterPojo attendanceFilterPojo) {
+		StringBuilder payPeriodDatesQuery = new StringBuilder();
+		payPeriodDatesQuery.append(" SELECT ");
+		payPeriodDatesQuery.append("    TRANSACTIONDURATION AS PAYPERIOD, ");
+		payPeriodDatesQuery.append("    IF( ");
+		payPeriodDatesQuery.append("        transactionduration < DATE_FORMAT(NOW(), '%Y%m'), ");
+		payPeriodDatesQuery.append(
+				"        MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')), ");
+		payPeriodDatesQuery.append("        IF( ");
+		payPeriodDatesQuery
+				.append("            SUM(IF(transactionduration = DATE_FORMAT(NOW(), '%Y%m'), '1', '0')) = 1, ");
+		payPeriodDatesQuery.append(
+				"            MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')), ");
+		payPeriodDatesQuery.append(
+				"            MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) ");
+		payPeriodDatesQuery.append("        ) ");
+		payPeriodDatesQuery.append("    ) AS PAYPERIODMONTHNAME, ");
+		payPeriodDatesQuery.append("    CONVERT(LEFT(TRANSACTIONDURATION, 4), CHAR) AS PAYPERIODYEAR, ");
+		payPeriodDatesQuery.append("    FROMDATE AS PAYPERIODFROMDATE, ");
+		payPeriodDatesQuery.append("    DATE_ADD( ");
+		payPeriodDatesQuery.append("        FROMDATE, ");
+		payPeriodDatesQuery.append("        INTERVAL DAY(LAST_DAY(DATE_ADD(FROMDATE, INTERVAL 1 MONTH)) - 1) DAY ");
+		payPeriodDatesQuery.append("    ) AS PAYPERIODTODATE, ");
+		payPeriodDatesQuery.append("    IF( ");
+		payPeriodDatesQuery.append("        transactionduration < DATE_FORMAT(NOW(), '%Y%m'), ");
+		payPeriodDatesQuery.append(
+				"        MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')), ");
+		payPeriodDatesQuery.append("        IF( ");
+		payPeriodDatesQuery
+				.append("            SUM(IF(transactionduration = DATE_FORMAT(NOW(), '%Y%m'), '1', '0')) = 1, ");
+		payPeriodDatesQuery.append(
+				"            MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')), ");
+		payPeriodDatesQuery.append(
+				"            MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) ");
+		payPeriodDatesQuery.append("        ) ");
+		payPeriodDatesQuery.append("    ) AS MONTHNAME, ");
+		payPeriodDatesQuery.append("    CONVERT(LEFT(TRANSACTIONDURATION, 4), CHAR) AS YEAR, ");
+		payPeriodDatesQuery.append(
+				"    CONVERT(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01'), CHAR) AS FROMDATE, ");
+		payPeriodDatesQuery.append(
+				"    LAST_DAY(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) AS TODATE ");
+		payPeriodDatesQuery.append("FROM HCLHRM_PROD_OTHERS.TBL_ICONNECT_TRANSACTION_DATES ");
+		payPeriodDatesQuery.append("WHERE transactiontypeid = 1 ");
+		payPeriodDatesQuery.append(" AND businessunitid=? ");
+		payPeriodDatesQuery.append(" AND transactionduration =? ");
+		payPeriodDatesQuery.append(" GROUP BY TRANSACTIONDURATION ");
+		payPeriodDatesQuery.append(" ORDER BY transactionduration DESC ");
+		payPeriodDatesQuery.append(" LIMIT 12 ");
+
 		LocalDate start = null;
 		LocalDate end = null;
+		int businessUnitId;
+
 		if (attendanceFilterPojo.getIsDataBetween()) {
 			start = attendanceFilterPojo.getFromDate();
 			end = attendanceFilterPojo.getToDate();
 		} else {
 			if (attendanceFilterPojo.getIsPayPeriod()) {
-				Map<String, Object> payrollDates = null;
-
-				int businessUnitId;
-
 				if (attendanceFilterPojo.getLocation() != null) {
 					businessUnitId = (attendanceFilterPojo.getLocation() == 9) ? 23 : 11;
 				} else if (attendanceFilterPojo.getBu() != null && !attendanceFilterPojo.getBu().isEmpty()) {
@@ -191,14 +238,20 @@ public class AttendanceRepository {
 					businessUnitId = jdbcTemplate.queryForObject(userBuQuery, Integer.class,
 							attendanceFilterPojo.getEmpId());
 				} else {
-					throw new AttendanceDataFetchingException();
+					throw new AttendanceDataFetchingException("Insufficient data to determine Business Unit");
 				}
 
-				payrollDates = jdbcTemplate.queryForMap(payPeriodDatesQuery, businessUnitId,
+				Map<String, Object> payrollDates = jdbcTemplate.queryForMap(payPeriodDatesQuery.toString(),
+						businessUnitId,
 						attendanceFilterPojo.getYear() + String.format("%02d", attendanceFilterPojo.getMonth()));
 
-				start = ((Date) payrollDates.get("fromdate")).toLocalDate();
-				end = ((Date) payrollDates.get("todate")).toLocalDate();
+				if (businessUnitId == 23) {
+					start = ((Date) payrollDates.get("FROMDATE")).toLocalDate();
+					end = ((Date) payrollDates.get("TODATE")).toLocalDate();
+				} else {
+					start = ((Date) payrollDates.get("PAYPERIODFROMDATE")).toLocalDate();
+					end = ((Date) payrollDates.get("PAYPERIODTODATE")).toLocalDate();
+				}
 			} else {
 				YearMonth yearMonth = YearMonth.of(attendanceFilterPojo.getYear(), attendanceFilterPojo.getMonth());
 				start = yearMonth.atDay(1);
@@ -370,12 +423,10 @@ public class AttendanceRepository {
 		attendanceQuery.append(" A.employeesequenceno, A.callname ");
 		attendanceQuery.append(" Order by A.employeesequenceno asc ");
 	}
-	
-	
+
 	public List<AttendanceLocationPojo> getEmployeebusinessunit(int empId) {
 		StringBuilder locationsQuery = new StringBuilder();
-		 
-		 
+
 		locationsQuery.append("SELECT b.businessunitid as BUSINESSUNITID, b.name as NAME ");
 		locationsQuery.append("FROM hclhrm_prod.tbl_employee_businessunit e ");
 		locationsQuery.append("LEFT JOIN hclhrm_prod.tbl_employee_primary p ON p.employeeid = e.employeeid ");
@@ -389,8 +440,63 @@ public class AttendanceRepository {
 			return locations;
 		}, empId);
 	}
-	
-	
-	
 
+	public List<Map<String, Object>> getPayPeriodMonths(Integer empId, Integer location, List<Integer> bu,
+			String callName, boolean isPayPeriod) {
+		int businessUnitId;
+		if (location != null) {
+			businessUnitId = (location == 9) ? 23 : 11;
+		} else if (bu != null && !bu.isEmpty()) {
+			businessUnitId = ("HYD".equalsIgnoreCase(callName) || "ASSAM".equalsIgnoreCase(callName)) ? 11 : 23;
+		} else if (empId != null) {
+			String userBuQuery = "SELECT companyid FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY WHERE EMPLOYEESEQUENCENO=?";
+			businessUnitId = jdbcTemplate.queryForObject(userBuQuery, Integer.class, empId);
+		} else {
+			throw new AttendanceDataFetchingException("Insufficient data to determine Business Unit");
+		}
+
+		// Build SQL Query
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT ").append("  TRANSACTIONDURATION AS PAYPERIOD, ").append(
+				"  MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) AS PAYPERIODMONTHNAME, ")
+				.append("  CONVERT(LEFT(TRANSACTIONDURATION, 4), CHAR) AS PAYPERIODYEAR, ")
+				.append("  FROMDATE AS PAYPERIODFROMDATE, ")
+				.append("  DATE_ADD(FROMDATE, INTERVAL DAY(LAST_DAY(DATE_ADD(FROMDATE, INTERVAL 1 MONTH)) - 1) DAY) AS PAYPERIODTODATE, ")
+				.append("  MONTHNAME(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) AS MONTHNAME, ")
+				.append("  CONVERT(LEFT(TRANSACTIONDURATION, 4), CHAR) AS YEAR, ")
+				.append("  CONVERT(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01'), CHAR) AS FROMDATE, ")
+				.append("  LAST_DAY(CONCAT(LEFT(TRANSACTIONDURATION, 4), '-', RIGHT(TRANSACTIONDURATION, 2), '-01')) AS TODATE ")
+				.append("FROM HCLHRM_PROD_OTHERS.TBL_ICONNECT_TRANSACTION_DATES ")
+				.append("WHERE transactiontypeid = 1 ").append("AND businessunitid IN (?) ");
+
+		List<Object> params = new ArrayList<>();
+		params.add(businessUnitId);
+
+		if (!isPayPeriod || businessUnitId == 23) {
+			String currentPeriod = LocalDate.now().getYear() + String.format("%02d", LocalDate.now().getMonthValue());
+			query.append("AND TRANSACTIONDURATION <= ? ");
+			params.add(currentPeriod);
+		}
+
+		query.append("GROUP BY TRANSACTIONDURATION ").append("ORDER BY TRANSACTIONDURATION DESC ").append("LIMIT 12");
+
+		// Execute Query and Transform Results
+		return jdbcTemplate.queryForList(query.toString(), params.toArray()).stream().map(payPeriod -> {
+			String monthName = Optional.ofNullable(payPeriod.get("PAYPERIODMONTHNAME")).map(Object::toString)
+					.orElse("");
+			String yearStr = Optional.ofNullable(payPeriod.get("YEAR")).map(Object::toString).orElse("");
+
+			if (!monthName.isEmpty() && !yearStr.isEmpty()) {
+				int monthNum = Month.valueOf(monthName.toUpperCase()).getValue();
+
+				Map<String, Object> simplifiedMap = new HashMap<>();
+				simplifiedMap.put("YEAR", Integer.parseInt(yearStr));
+				simplifiedMap.put("MONTH", monthNum);
+				simplifiedMap.put("PAYPERIODMONTHNAME", monthName.toUpperCase() + "-" + yearStr);
+
+				return simplifiedMap;
+			}
+			return payPeriod;
+		}).collect(Collectors.toList());
+	}
 }

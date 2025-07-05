@@ -24,8 +24,7 @@ public class NotificationRepository {
 		managerQuery.append(" SELECT COUNT(*) ");
 		managerQuery.append(" FROM assessment_form.tbl_hr_processingempinfo a ");
 		managerQuery.append(" JOIN hclhrm_prod.tbl_employee_primary prime ON a.emp_id=prime.employeesequenceno ");
-		managerQuery.append(
-				" WHERE a.next_approverid = 11903 AND a.STATUS IN (1002, 1003)  AND prime.status IN (1001,1092,1401) ");
+		managerQuery.append(" WHERE a.next_approverid = ? AND a.STATUS IN (1002, 1003)  AND prime.status IN (1001,1092,1401) ");
 
 		int pendingAssessments = jdbcTemplate.queryForObject(managerQuery.toString(), Integer.class, empId);
 		if (pendingAssessments > 0) {
