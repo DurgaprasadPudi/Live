@@ -14,6 +14,7 @@ public class EmployeeMasterDetailsDTO {
 	private String division;
 	private String designation;
 	private String department;
+	private String MisDepartment;
 	private String reportee;
 	private String reporteeStatus;
 	private String bankName;
@@ -96,7 +97,7 @@ public class EmployeeMasterDetailsDTO {
 
 	public EmployeeMasterDetailsDTO(String empId, String name, String status, String costCenter, String gender,
 			String employmentType, String incrementType, String lastWorkingDay, String dob, String doj, String division,
-			String designation, String department, String reportee, String reporteeStatus, String bankName, String ifsc,
+			String designation, String department, String MisDepartment,String reportee, String reporteeStatus, String bankName, String ifsc,
 			String accountNo, String proEmail, String pEmail, String pfNo, String esiNo, String pfUan, String state,
 			String hq, String region, String professionalMobile, String personalMobile, String personalPhone,
 			String communicationAddress, String communicationAddress2, String communicationAddress3,
@@ -125,6 +126,7 @@ public class EmployeeMasterDetailsDTO {
 		this.division = division;
 		this.designation = designation;
 		this.department = department;
+		this.MisDepartment=MisDepartment;
 		this.reportee = reportee;
 		this.reporteeStatus = reporteeStatus;
 		this.bankName = bankName;
@@ -904,6 +906,14 @@ public class EmployeeMasterDetailsDTO {
 
 	public void setCtc(String ctc) {
 		this.ctc = ctc;
+	}
+
+	public  String getMisDepartment() {
+		return MisDepartment;
+	}
+
+	public   void setMisDepartment(String misDepartment) {
+		this.MisDepartment = misDepartment;
 	}
 
 }

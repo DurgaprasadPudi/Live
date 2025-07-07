@@ -4,6 +4,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -246,8 +247,11 @@ public class AttendanceRepository {
 						attendanceFilterPojo.getYear() + String.format("%02d", attendanceFilterPojo.getMonth()));
 
 				if (businessUnitId == 23) {
-					start = ((Date) payrollDates.get("FROMDATE")).toLocalDate();
-					end = ((Date) payrollDates.get("TODATE")).toLocalDate();
+					DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+					start = LocalDate.parse((String) payrollDates.get("FROMDATE"), formatter);
+					//end = LocalDate.parse((String) payrollDates.get("TODATE"), formatter);
+					//start = ((Date) payrollDates.get("FROMDATE")).toLocalDate();
+					 end = ((Date) payrollDates.get("TODATE")).toLocalDate();
 				} else {
 					start = ((Date) payrollDates.get("PAYPERIODFROMDATE")).toLocalDate();
 					end = ((Date) payrollDates.get("PAYPERIODTODATE")).toLocalDate();

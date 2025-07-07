@@ -35,8 +35,23 @@ public class MasterReportRepository {
 
 		// buName condition
 		if (request.getLocation() != null && !request.getLocation().isEmpty()) {
-			appendCondition(whereClause, "bu.callname = ? ");
-			params.add(request.getLocation());
+			//appendCondition(whereClause, "bu.callname = ? ");
+			//params.add(request.getLocation());
+			
+			
+			 if ("AZISTA".equalsIgnoreCase(request.getLocation())) {
+			        appendCondition(whereClause, "bu.callname = 'HYD' and bu.code='AZISTA' AND bu.businessunitid NOT IN (44) ");
+			    } 
+			    else if ("AZISTA-BST".equalsIgnoreCase(request.getLocation())) {
+			        appendCondition(whereClause, "bu.callname = 'HYD' AND bu.businessunitid IN (44) ");
+			    } 
+			    else if ("AZISTA-PROMOTERS".equalsIgnoreCase(request.getLocation())) {
+			        appendCondition(whereClause, "bu.callname = 'TEP' AND bu.businessunitid IN (25) ");
+			    } 
+			    else {
+			        appendCondition(whereClause, "bu.callname = ? ");
+			        params.add(request.getLocation());
+			    }
 		}
 
 		// bu (company IDs) condition
@@ -65,6 +80,7 @@ public class MasterReportRepository {
 				+ "DATE_FORMAT(IFNULL(IF(A.STATUS in(1001,1092,1401),'0000-00-00',HR.LASTDATE),'0000-00-00'),'%d-%m-%Y') 'LWD', "
 				+ "DATE_FORMAT(A.DATEOFBIRTH,'%d-%m-%Y') 'DOB', IFNULL(DATE_FORMAT(PROFILE.DATEOFJOIN,'%d-%m-%Y'),'') DOJ, "
 				+ "BU.NAME 'DIVISION', IFNULL(DES.NAME,'') 'DESIGNATION', IFNULL(DEP.NAME,'') 'DEPARTMENT', "
+				+ "IFNULL(MIS.MIS_DEPARTMENT,'') 'MIS_DEPARTMENT', "
 				+ "CONCAT(MN.EMPLOYEESEQUENCENO,'-',MN.CALLNAME) 'Reportee', MS.NAME 'Reportee_Status' "
 				+ "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
 				+ "LEFT JOIN HCLADM_PROD.TBL_STATUS_CODES STATUS ON A.STATUS=STATUS.STATUS "
@@ -79,6 +95,7 @@ public class MasterReportRepository {
 				+ "LEFT JOIN HCLHRM_PROD.tbl_employment_types EMPLO ON A.EMPLOYMENTTYPEID=EMPLO.EMPLOYMENTTYPEID "
 				+ "LEFT JOIN HCLADM_PROD.tbl_increment_type STROKE ON DD.INCREMENTTYPEID=STROKE.INCREMENTTYPEID "
 				+ "LEFT JOIN HCLADM_PROD.tbl_gender GEN ON A.GENDER=GEN.GENDER "
+				+ "LEFT JOIN test.tbl_mis_department_mapping MIS ON A.EMPLOYEESEQUENCENO = MIS.EMPLOYEEID "
 				+ "LEFT JOIN hcladm_prod.tbl_costcenter co ON co.COSTCENTERID=a.COSTCENTERID " + " " + finalWhereClause
 				+ " " + "GROUP BY a.employeeid order by a.employeesequenceno ";
 
@@ -98,8 +115,11 @@ public class MasterReportRepository {
 			dto.setDivision(rs.getString("DIVISION"));
 			dto.setDesignation(rs.getString("DESIGNATION"));
 			dto.setDepartment(rs.getString("DEPARTMENT"));
+			dto.setMisDepartment(rs.getString("MIS_DEPARTMENT")); 
 			dto.setReportee(rs.getString("Reportee"));
 			dto.setReporteeStatus(rs.getString("Reportee_Status"));
+			
+			//System.out.println(rs.getString("MIS_DEPARTMENT"));
 		});
 
 		// 2. Bank & Contact Details
