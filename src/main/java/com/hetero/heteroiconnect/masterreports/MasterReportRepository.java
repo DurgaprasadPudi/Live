@@ -67,7 +67,7 @@ public class MasterReportRepository {
 			appendCondition(whereClause, "A.status IN (" + placeholders + ")");
 			params.addAll(request.getStatus());
 		} else {
-			appendCondition(whereClause, "A.status NOT IN ('1091','1082') ");
+			appendCondition(whereClause, "A.status NOT IN ('0') ");
 		}
 
 		// Final where clause
