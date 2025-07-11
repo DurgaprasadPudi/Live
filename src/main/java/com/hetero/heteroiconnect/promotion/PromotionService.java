@@ -65,17 +65,20 @@ public class PromotionService {
 				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = a.companyid ")
 				.append("LEFT JOIN hclhrm_prod.tbl_employment_types g ON g.employmenttypeid = a.employmenttypeid ")
 				.append("WHERE a.employeesequenceno = ? AND a.status = 1001 ").append("GROUP BY a.employeesequenceno");
+		
+		System.err.println("employeeseq-----"+query.toString());
 
-		try {
+		
 			List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
+			
+			//System.err.println("employeeseq-----"+employeeseq);
 			if (result.isEmpty()) {
+				
+				System.err.println("employeeseq-----"+employeeseq);
 				throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
 			}
 			return result;
-		} catch (Exception e) {
-			e.printStackTrace();
-			throw new RuntimeException("An error occurred while processing the request.", e);
-		}
+		
 
 	}
 
