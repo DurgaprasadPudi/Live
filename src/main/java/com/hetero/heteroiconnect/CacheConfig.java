@@ -23,7 +23,7 @@ public class CacheConfig {
 	public CacheManager cacheManager() {
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
 		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
-				"tasktypes", "outcomes", "activities", "plannedadhoc", "usermanual"));
+				"tasktypes", "outcomes", "activities", "plannedadhoc", "usermanual", "gender"));
 		return cacheManager;
 	}
 }
