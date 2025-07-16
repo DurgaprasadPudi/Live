@@ -65,7 +65,6 @@ public class GlobalExceptionHandler {
 
 		redirectAttributes.addFlashAttribute("message", e.getCause().getMessage());
 		return "FAIL";
-
 	}
 
 	@ExceptionHandler(CompletionException.class)
