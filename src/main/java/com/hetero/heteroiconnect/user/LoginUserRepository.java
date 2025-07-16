@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Repository 
 public interface LoginUserRepository extends JpaRepository<LoginUser, Long> {
-
+   
    
     /*Page<MstUser> findByUserFullnameContainsAndIsActiveTrueAndIsDeletedFalse(String name, Pageable page);
 
@@ -18,7 +18,7 @@ public interface LoginUserRepository extends JpaRepository<LoginUser, Long> {
     Page<MstUser> findAllByIsActiveTrueAndIsDeletedFalse(Pageable page);
 
     List<MstUser> findByUserFullnameContaifns(String key);*/
-
+   
 	
 	//// for production 
 	

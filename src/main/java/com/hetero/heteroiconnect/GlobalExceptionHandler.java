@@ -24,6 +24,21 @@ import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundExcepti
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.promotion.exception.ErrorMessage;
 import com.hetero.heteroiconnect.requisition.forms.UploadPositionException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.AssignItemsException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.AssignedItemsHistoryFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ChildRegistrationFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ChildRequestsFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.IndividualUploadInventoryFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.InventoryFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ItemsFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ItemsUploadException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ParentRegistrationFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ParentRequestTicketsFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ParentRequestsFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.RequestItemsAlreadyUploadedException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.RequestedItemsFetchingException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.StationaryHouseKeepingRequestRaiseException;
+import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.StockNotAvailableException;
 import com.hetero.heteroiconnect.worksheet.exception.DeleteTaskException;
 import com.hetero.heteroiconnect.worksheet.exception.DuplicateEmployeeException;
 import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
@@ -37,6 +52,8 @@ import com.hetero.heteroiconnect.worksheet.exceptionhandler.ValidationErrorRespo
 import com.hetero.heteroiconnect.worksheet.report.Exception.ManagerAccessDeniedException;
 import com.hetero.heteroiconnect.worksheet.report.Exception.NotFiledDataException;
 import com.hetero.heteroiconnect.worksheet.report.entity.ReportErrorResponse;
+
+import com.hetero.heteroiconnect.zonedetails.EmptyDataNotFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -197,4 +214,166 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
+
+	@ExceptionHandler(EmptyDataNotFoundException.class)
+	public ResponseEntity<String> handleEmptyDataException(EmptyDataNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NO_CONTENT).body("No tour data found for the selected period.");
+	}
+
+	/////
+
+	@ExceptionHandler(ItemsFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ItemsFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Stationary and House keeping items fetching error",
+
+				ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(StationaryHouseKeepingRequestRaiseException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(StationaryHouseKeepingRequestRaiseException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Stationary and House keeping items request raising error",
+
+				ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ParentRequestsFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ParentRequestsFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Parent requests fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ChildRequestsFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ChildRequestsFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Child items fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ParentRequestTicketsFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ParentRequestTicketsFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Parent request tickets fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ItemsUploadException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ItemsUploadException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Items uploading error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(RequestItemsAlreadyUploadedException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(RequestItemsAlreadyUploadedException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Items already uploaded", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ParentRegistrationFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ParentRegistrationFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Parent registrations fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(ChildRegistrationFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(ChildRegistrationFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Child items fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(InventoryFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(InventoryFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Inventory fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(IndividualUploadInventoryFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(IndividualUploadInventoryFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Inventory fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(RequestedItemsFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(RequestedItemsFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Requested items fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(AssignItemsException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(AssignItemsException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Items assigning error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(StockNotAvailableException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(StockNotAvailableException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Stock not available", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
+	@ExceptionHandler(AssignedItemsHistoryFetchingException.class)
+
+	public ResponseEntity<ErrorResponse> handleException(AssignedItemsHistoryFetchingException ex) {
+
+		ErrorResponse errorResponse = new ErrorResponse("Assigned assets history fetching error", ex.getMessage());
+
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+
+	}
+
 }
