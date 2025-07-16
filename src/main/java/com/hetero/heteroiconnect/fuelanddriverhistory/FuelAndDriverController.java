@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -32,8 +33,12 @@ public class FuelAndDriverController {
 	}
 
 	@PostMapping(value = "/add", consumes = "application/json")
-	public ResponseEntity<ApiResponse> addFuelDriverHistory(List<FuelDriverHistoryInsertDTO> dto) {
+	public ResponseEntity<ApiResponse> addFuelDriverHistory(@RequestBody List<FuelDriverHistoryInsertDTO> dto) {
 		return ResponseEntity.ok(new ApiResponse(fuelAndDriverService.addFuelDriverHistory(dto)));
 	}
 
+	@PostMapping(value = "/updateprocessdetails", consumes = "application/json")
+	public ResponseEntity<ApiResponse> updateProcessDetails(@RequestBody ProcessDTO dto) {
+		return ResponseEntity.ok(new ApiResponse(fuelAndDriverService.updateProcessDetails(dto)));
+	}
 }

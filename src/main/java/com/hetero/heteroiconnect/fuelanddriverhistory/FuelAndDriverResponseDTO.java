@@ -1,6 +1,7 @@
 package com.hetero.heteroiconnect.fuelanddriverhistory;
 
 public class FuelAndDriverResponseDTO {
+	private Integer fuelDriverId;
 	private String employeeSequenceNo;
 	private String payperiod;
 	private String employeeName;
@@ -13,27 +14,20 @@ public class FuelAndDriverResponseDTO {
 	private String claimedAmount;
 	private String billFlag;
 	private String comments;
+	private String processedFlag;
+	private String receivedDate;
+	private String processedDate;
 
 	public FuelAndDriverResponseDTO() {
 		super();
 	}
 
-	public FuelAndDriverResponseDTO(String employeeSequenceNo, String payperiod, String employeeName, String deptName,
-			String desgName, String effectiveDate, String fuelAndMaintenance, String driverSalary, String totalAmount,
-			String claimedAmount, String billFlag, String comments) {
-		super();
-		this.employeeSequenceNo = employeeSequenceNo;
-		this.payperiod = payperiod;
-		this.employeeName = employeeName;
-		this.deptName = deptName;
-		this.desgName = desgName;
-		this.effectiveDate = effectiveDate;
-		this.fuelAndMaintenance = fuelAndMaintenance;
-		this.driverSalary = driverSalary;
-		this.totalAmount = totalAmount;
-		this.claimedAmount = claimedAmount;
-		this.billFlag = billFlag;
-		this.comments = comments;
+	public Integer getFuelDriverId() {
+		return fuelDriverId;
+	}
+
+	public void setFuelDriverId(Integer fuelDriverId) {
+		this.fuelDriverId = fuelDriverId;
 	}
 
 	public String getEmployeeSequenceNo() {
@@ -130,6 +124,53 @@ public class FuelAndDriverResponseDTO {
 
 	public void setComments(String comments) {
 		this.comments = comments;
+	}
+
+	public String getProcessedFlag() {
+		return processedFlag;
+	}
+
+	public void setProcessedFlag(String processedFlag) {
+		this.processedFlag = processedFlag;
+	}
+
+	public String getReceivedDate() {
+		return receivedDate;
+	}
+
+	public void setReceivedDate(String receivedDate) {
+		this.receivedDate = receivedDate;
+	}
+
+	public String getProcessedDate() {
+		return processedDate;
+	}
+
+	public void setProcessedDate(String processedDate) {
+		this.processedDate = processedDate;
+	}
+
+	public FuelAndDriverResponseDTO(Integer fuelDriverId, String employeeSequenceNo, String payperiod,
+			String employeeName, String deptName, String desgName, String effectiveDate, String fuelAndMaintenance,
+			String driverSalary, String totalAmount, String claimedAmount, String billFlag, String comments,
+			String processedFlag, String receivedDate, String processedDate) {
+		super();
+		this.fuelDriverId = fuelDriverId;
+		this.employeeSequenceNo = employeeSequenceNo;
+		this.payperiod = payperiod;
+		this.employeeName = employeeName;
+		this.deptName = deptName;
+		this.desgName = desgName;
+		this.effectiveDate = effectiveDate;
+		this.fuelAndMaintenance = fuelAndMaintenance;
+		this.driverSalary = driverSalary;
+		this.totalAmount = totalAmount;
+		this.claimedAmount = claimedAmount;
+		this.billFlag = billFlag;
+		this.comments = comments;
+		this.processedFlag = processedFlag;
+		this.receivedDate = receivedDate;
+		this.processedDate = processedDate;
 	}
 
 }

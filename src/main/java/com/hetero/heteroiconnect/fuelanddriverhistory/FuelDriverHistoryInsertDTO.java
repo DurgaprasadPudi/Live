@@ -8,13 +8,14 @@ public class FuelDriverHistoryInsertDTO {
 	private Integer billFlag;
 	private String comment;
 	private String createdBy;
+	private Integer processedFlag;
 
 	public FuelDriverHistoryInsertDTO() {
 		super();
 	}
 
 	public FuelDriverHistoryInsertDTO(String employeeId, String payPeriod, String totalAmount, String claimedAmount,
-			Integer billFlag, String comment, String createdBy) {
+			Integer billFlag, String comment, String createdBy, Integer processedFlag) {
 		super();
 		this.employeeId = employeeId;
 		this.payPeriod = payPeriod;
@@ -23,6 +24,7 @@ public class FuelDriverHistoryInsertDTO {
 		this.billFlag = billFlag;
 		this.comment = comment;
 		this.createdBy = createdBy;
+		this.processedFlag = processedFlag;
 	}
 
 	public String getEmployeeId() {
@@ -79,6 +81,14 @@ public class FuelDriverHistoryInsertDTO {
 
 	public void setCreatedBy(String createdBy) {
 		this.createdBy = createdBy;
+	}
+
+	public Integer getProcessedFlag() {
+		return processedFlag;
+	}
+
+	public void setProcessedFlag(Integer processedFlag) {
+		this.processedFlag = processedFlag;
 	}
 
 }

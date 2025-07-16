@@ -12,12 +12,16 @@ public interface ContractService {
 
 	public List<Master> getCompany();
 
-	public List<Master> getContracts();
+	public List<Master> getContracts(int companyId);
+
+	public List<ContractType> getContractTypes(int contractId,int companyId);
 
 	public List<Master> getGender();
 
 	List<ContractDetailsDTO> getAllContractDetails();
 
 	String deleteEmployeeData(int id);
+
+	String updateDOE(int id, String dateOfExit, String comment);
 
 }

@@ -8,6 +8,8 @@ public interface FuelAndDriverService {
 
 	List<Map<String, String>> getPayPeriodsWithMonthYear();
 
-	String addFuelDriverHistory(List<FuelDriverHistoryInsertDTO>  dto);
+	String addFuelDriverHistory(List<FuelDriverHistoryInsertDTO> dto);
+
+	String updateProcessDetails(ProcessDTO dto);
 
 }

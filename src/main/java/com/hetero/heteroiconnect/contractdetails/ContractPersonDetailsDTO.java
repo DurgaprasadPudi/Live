@@ -4,6 +4,8 @@ public class ContractPersonDetailsDTO {
 
 	private int companyId;
 	private int contractId;
+	private int contractTypeId;
+	private String wage;
 	private int employeeId;
 	private String employeeName;
 	private String doj;
@@ -19,12 +21,14 @@ public class ContractPersonDetailsDTO {
 	public ContractPersonDetailsDTO() {
 	}
 
-	public ContractPersonDetailsDTO(int companyId, int contractId, int employeeId, String employeeName, String doj,
-			int gender, String department, String permanentAddress, String presentAddress, String mobileNumber,
-			String aadharNumber, String file, String dob) {
+	public ContractPersonDetailsDTO(int companyId, int contractId, int contractTypeId, String wage, int employeeId,
+			String employeeName, String doj, int gender, String department, String permanentAddress,
+			String presentAddress, String mobileNumber, String aadharNumber, String file, String dob) {
 		super();
 		this.companyId = companyId;
 		this.contractId = contractId;
+		this.contractTypeId = contractTypeId;
+		this.wage = wage;
 		this.employeeId = employeeId;
 		this.employeeName = employeeName;
 		this.doj = doj;
@@ -52,6 +56,22 @@ public class ContractPersonDetailsDTO {
 
 	public void setContractId(int contractId) {
 		this.contractId = contractId;
+	}
+
+	public int getContractTypeId() {
+		return contractTypeId;
+	}
+
+	public void setContractTypeId(int contractTypeId) {
+		this.contractTypeId = contractTypeId;
+	}
+
+	public String getWage() {
+		return wage;
+	}
+
+	public void setWage(String wage) {
+		this.wage = wage;
 	}
 
 	public int getEmployeeId() {

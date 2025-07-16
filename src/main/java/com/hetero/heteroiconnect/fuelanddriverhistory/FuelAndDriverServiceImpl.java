@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.hetero.heteroiconnect.worksheet.exception.DuplicateEmployeeException;
-import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
+import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
 
 @Service
@@ -27,7 +27,7 @@ public class FuelAndDriverServiceImpl implements FuelAndDriverService {
 		try {
 			return fuelAndDriverRepository.getFuelAndDriverDetails(payPeriod);
 		} catch (Exception e) {
-			throw new UserWorkSheetUploadException(
+			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("fuel.and.driver.maintanence.fetching.error", new Object[] {}),
 					e);
 		}
@@ -38,23 +38,10 @@ public class FuelAndDriverServiceImpl implements FuelAndDriverService {
 		try {
 			return fuelAndDriverRepository.getPayPeriodsWithMonthYear();
 		} catch (Exception e) {
-			throw new UserWorkSheetUploadException(messageBundleSource
+			throw new FuelAndDriverExpensesException(messageBundleSource
 					.getmessagebycode("fuel.and.driver.maintanence.payperiod.error", new Object[] {}), e);
 		}
 	}
-
-	/*
-	 * @Transactional(rollbackFor = Throwable.class) public String
-	 * addFuelDriverHistory(FuelDriverHistoryInsertDTO dto) { double claimedAmount =
-	 * Double.parseDouble(dto.getClaimedAmount()); double totalAmount =
-	 * Double.parseDouble(dto.getTotalAmount()); if (claimedAmount > totalAmount) {
-	 * throw new DuplicateEmployeeException(
-	 * messageBundleSource.getmessagebycode("fuel.driver.claim.exceeds.total",
-	 * null)); } try { return fuelAndDriverRepository.addFuelDriverHistory(dto); }
-	 * catch (Exception e) { throw new UserWorkSheetUploadException(
-	 * messageBundleSource.getmessagebycode(
-	 * "fuel.and.driver.maintanence.upload.error", new Object[] {}), e); } }
-	 */
 
 	@Transactional(rollbackFor = Throwable.class)
 	public String addFuelDriverHistory(List<FuelDriverHistoryInsertDTO> dtos) {
@@ -69,9 +56,19 @@ public class FuelAndDriverServiceImpl implements FuelAndDriverService {
 		try {
 			return fuelAndDriverRepository.addFuelDriverHistory(dtos);
 		} catch (Exception e) {
-			throw new UserWorkSheetUploadException(
+			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("fuel.and.driver.maintanence.upload.error", new Object[] {}),
 					e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public String updateProcessDetails(ProcessDTO dto) {
+		try {
+			return fuelAndDriverRepository.updateProcessDetails(dto);
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(messageBundleSource
+					.getmessagebycode("fuel.and.driver.maintanence.update.process.error", new Object[] {}), e);
 		}
 	}
 

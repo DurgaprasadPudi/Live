@@ -6,10 +6,15 @@ public class ContractDetailsDTO {
 	private String companyName;
 	private Integer contractId;
 	private String contractName;
+	private Integer contractTypeId;
+	private String contractTypeName;
+	private String wage;
 	private String contractPersonMobileNumber;
 	private Integer employeeId;
 	private String employeeName;
 	private String doj;
+	private String doe;
+	private String comment;
 	private Integer genderId;
 	private String genderName;
 	private String department;
@@ -21,6 +26,44 @@ public class ContractDetailsDTO {
 	private byte[] file;
 	private String createdDateTime;
 	private String dob;
+
+	public ContractDetailsDTO() {
+		super();
+	}
+
+	public ContractDetailsDTO(Integer contractDetailId, Integer companyId, String companyName, Integer contractId,
+			String contractName, Integer contractTypeId, String contractTypeName, String wage,
+			String contractPersonMobileNumber, Integer employeeId, String employeeName, String doj, String doe,
+			String comment, Integer genderId, String genderName, String department, String permanentAddress,
+			String presentAddress, String mobileNumber, String aadharNumber, String fileName, byte[] file,
+			String createdDateTime, String dob) {
+		super();
+		this.contractDetailId = contractDetailId;
+		this.companyId = companyId;
+		this.companyName = companyName;
+		this.contractId = contractId;
+		this.contractName = contractName;
+		this.contractTypeId = contractTypeId;
+		this.contractTypeName = contractTypeName;
+		this.wage = wage;
+		this.contractPersonMobileNumber = contractPersonMobileNumber;
+		this.employeeId = employeeId;
+		this.employeeName = employeeName;
+		this.doj = doj;
+		this.doe = doe;
+		this.comment = comment;
+		this.genderId = genderId;
+		this.genderName = genderName;
+		this.department = department;
+		this.permanentAddress = permanentAddress;
+		this.presentAddress = presentAddress;
+		this.mobileNumber = mobileNumber;
+		this.aadharNumber = aadharNumber;
+		this.fileName = fileName;
+		this.file = file;
+		this.createdDateTime = createdDateTime;
+		this.dob = dob;
+	}
 
 	public Integer getContractDetailId() {
 		return contractDetailId;
@@ -62,6 +105,30 @@ public class ContractDetailsDTO {
 		this.contractName = contractName;
 	}
 
+	public Integer getContractTypeId() {
+		return contractTypeId;
+	}
+
+	public void setContractTypeId(Integer contractTypeId) {
+		this.contractTypeId = contractTypeId;
+	}
+
+	public String getContractTypeName() {
+		return contractTypeName;
+	}
+
+	public void setContractTypeName(String contractTypeName) {
+		this.contractTypeName = contractTypeName;
+	}
+
+	public String getWage() {
+		return wage;
+	}
+
+	public void setWage(String wage) {
+		this.wage = wage;
+	}
+
 	public String getContractPersonMobileNumber() {
 		return contractPersonMobileNumber;
 	}
@@ -92,6 +159,22 @@ public class ContractDetailsDTO {
 
 	public void setDoj(String doj) {
 		this.doj = doj;
+	}
+
+	public String getDoe() {
+		return doe;
+	}
+
+	public void setDoe(String doe) {
+		this.doe = doe;
+	}
+
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
 	}
 
 	public Integer getGenderId() {
@@ -182,31 +265,4 @@ public class ContractDetailsDTO {
 		this.dob = dob;
 	}
 
-	public ContractDetailsDTO(Integer contractDetailId, Integer companyId, String companyName, Integer contractId,
-			String contractName, String contractPersonMobileNumber, Integer employeeId, String employeeName, String doj,
-			Integer genderId, String genderName, String department, String permanentAddress, String presentAddress,
-			String mobileNumber, String aadharNumber, String fileName, byte[] file, String createdDateTime,
-			String dob) {
-		super();
-		this.contractDetailId = contractDetailId;
-		this.companyId = companyId;
-		this.companyName = companyName;
-		this.contractId = contractId;
-		this.contractName = contractName;
-		this.contractPersonMobileNumber = contractPersonMobileNumber;
-		this.employeeId = employeeId;
-		this.employeeName = employeeName;
-		this.doj = doj;
-		this.genderId = genderId;
-		this.genderName = genderName;
-		this.department = department;
-		this.permanentAddress = permanentAddress;
-		this.presentAddress = presentAddress;
-		this.mobileNumber = mobileNumber;
-		this.aadharNumber = aadharNumber;
-		this.fileName = fileName;
-		this.file = file;
-		this.createdDateTime = createdDateTime;
-		this.dob = dob;
-	}
 }

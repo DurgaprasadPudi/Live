@@ -42,9 +42,15 @@ public class ContractController {
 		return ResponseEntity.ok(contractService.getCompany());
 	}
 
-	@GetMapping(value = "/contracts", produces = "application/json")
-	public ResponseEntity<List<Master>> getContracts() {
-		return ResponseEntity.ok(contractService.getContracts());
+	@GetMapping(value = "/contracts/{companyId}", produces = "application/json")
+	public ResponseEntity<List<Master>> getContracts(@PathVariable int companyId) {
+		return ResponseEntity.ok(contractService.getContracts(companyId));
+	}
+
+	@GetMapping(value = "/contracttypes/{contractId}/{companyId}", produces = "application/json")
+	public ResponseEntity<List<ContractType>> getContractTypes(@PathVariable int contractId,
+			@PathVariable int companyId) {
+		return ResponseEntity.ok(contractService.getContractTypes(contractId, companyId));
 	}
 
 	@GetMapping(value = "/gender", produces = "application/json")
@@ -62,4 +68,11 @@ public class ContractController {
 	public ResponseEntity<ApiResponse> deleteEmployeeData(@PathVariable int id) {
 		return ResponseEntity.ok(new ApiResponse(contractService.deleteEmployeeData(id)));
 	}
+
+	@PostMapping("/doeentry")
+	public ResponseEntity<ApiResponse> updateDOE(@RequestParam int id, @RequestParam String dateOfExit,
+			@RequestParam(required = false) String comment) {
+		return ResponseEntity.ok(new ApiResponse(contractService.updateDOE(id, dateOfExit, comment)));
+	}
+
 }

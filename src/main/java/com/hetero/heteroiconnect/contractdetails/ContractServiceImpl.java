@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hetero.heteroiconnect.worksheet.exception.DuplicateEmployeeException;
-import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
+import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
 import com.hetero.heteroiconnect.worksheet.model.Master;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
 
@@ -67,8 +68,9 @@ public class ContractServiceImpl implements ContractService {
 			contractRepository.uploadContractEmployee(dto);
 			return "Employee uploaded successfully.";
 		} catch (Exception e) {
+			e.printStackTrace();
 			logger.error("Exception occurred while uploading employee ID: {}", dto.getEmployeeId(), e);
-			throw new UserWorkSheetUploadException(
+			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.upload.error", new Object[] {}), e);
 		}
 	}
@@ -79,8 +81,13 @@ public class ContractServiceImpl implements ContractService {
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
-	public List<Master> getContracts() {
-		return contractRepository.getContracts();
+	public List<Master> getContracts(int companyId) {
+		return contractRepository.getContracts(companyId);
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public List<ContractType> getContractTypes(int contractId,int companyId) {
+		return contractRepository.getContractTypes(contractId,companyId);
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
@@ -93,7 +100,7 @@ public class ContractServiceImpl implements ContractService {
 		try {
 			return contractRepository.getAllContractDetails();
 		} catch (Exception e) {
-			throw new UserWorkSheetUploadException(
+			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.fetching.error", new Object[] {}), e);
 		}
 	}
@@ -103,8 +110,19 @@ public class ContractServiceImpl implements ContractService {
 		try {
 			return contractRepository.deleteEmployeeData(id);
 		} catch (Exception e) {
-			throw new UserWorkSheetUploadException(
+			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.delete.error", new Object[] {}), e);
 		}
 	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public String updateDOE(int id, String dateOfExit, String comment) {
+		try {
+			return contractRepository.updateDOE(id, dateOfExit, comment);
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("contract.details.doe.error", new Object[] {}), e);
+		}
+	}
+
 }
