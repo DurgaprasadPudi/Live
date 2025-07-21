@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -99,7 +100,10 @@ public class Leaveapply {
       HalfDay = "1st Half"; 
     compoff = leaves.getCompoff();
     comm_date = leaves.getComm_date();
-    to_mail = leaves.getTo_mail();
+   // to_mail = leaves.getTo_mail();
+    
+     to_mail = getManagerEmail(leaves.getEmpID());
+    
     cc_mail = leaves.getCc_mail();
     subject = leaves.getSubject();
     reason = leaves.getReason();
@@ -141,6 +145,16 @@ public class Leaveapply {
     String LIMIT_LEAVE_ICONN_YEAR_OLD = null;
     String LIMIT_LEAVE_ICONN_YEAR_MSG_OLD = null;
     System.out.println("Leave_Type" + Leave_Type);
+    
+    Map<Object, Object> hm = new HashMap<>();
+    
+    if (to_mail == null || to_mail.trim().isEmpty()) {
+        hm.put("Message", "Reporting Manager email not found or manager is inactive/resigned. Please contact HR.");
+        hm.put("Flag", Flag);  // make sure `Flag` has been defined appropriately
+    } 
+    else
+    {
+    
     StringBuffer StrReverse = new StringBuffer();
     
     StrReverse.append(" select date_format(STR_TO_DATE('" + from_date + "' ,'%d-%m-%Y'),'%Y-%m-%d') , date_format(STR_TO_DATE('" + to_date + "' ,'%d-%m-%Y'),'%Y-%m-%d'), ifnull(date_format(STR_TO_DATE('" + Hal_date + "' ,'%d-%m-%Y'),'%Y-%m-%d'),'0000-00-00') ");
@@ -1008,6 +1022,9 @@ public class Leaveapply {
              
             conn.setAutoCommit(false);
             int count = 0;
+            
+            
+            
             if (HR_ATT.equalsIgnoreCase("OLD")) {
               ps = conn.prepareStatement("insert into hclhrm_prod_others.tbl_emp_attn_req(EMPLOYEEID,FROM_DATE,TO_DATE,SUBJECT,TO_EMAIL,CC_EMAIL,MESSAGE,REQ_TYPE,REQ_DATE,RANDOMID,HR_CC_MAIL,EMPMAIL) values(?,?,?,?,?,?,?,'LR',curdate(),?,?,?)", new String[] { "RID" });
               ps.setString(1, username);
@@ -1247,9 +1264,17 @@ else {
         e.printStackTrace();
       } 
     } 
-    Map<Object, Object> hm = new HashMap<>();
-    hm.put("Message", Atten_Req_Message);
-    hm.put("Flag", Flag);
+    
+    
+    
+    
+   
+    
+   
+    	    hm.put("Message", Atten_Req_Message);
+    	    hm.put("Flag", Flag);
+    }
+   
     return hm;
   }
   
@@ -1263,4 +1288,51 @@ else {
       clmap.put("LEAVEADD", row.get("Leave_Add")); 
     return clmap;
   }
+  
+   
+  public String getManagerEmail(String userName) {
+	    String to_mail = null;
+
+	    String sql = "SELECT " +
+	            "CONVERT(IFNULL(IS_MANAGER, ''), CHAR) AS IS_MANAGER, " +
+	            "CONVERT(IFNULL(MP.EMPLOYEESEQUENCENO, ''), CHAR) AS EMPID, " +
+	            "IFNULL(MPRO.EMAIL, '') AS EMAIL, " +
+	            "CONVERT(IFNULL(ST.STATUS, ''), CHAR) AS CODE, " +
+	            "IFNULL(ST.NAME, '') AS STATUS_NAME " +
+	        "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A " +
+	        "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS MM ON MM.EMPLOYEEID = A.EMPLOYEEID " +
+	        "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY MP ON MM.MANAGERID = MP.EMPLOYEEID " +
+	        "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_CONTACT MPRO ON MPRO.EMPLOYEEID = MP.EMPLOYEEID " +
+	        "LEFT JOIN HCLHRM_PROD.tbl_status_codes ST ON ST.STATUS = MP.STATUS " +
+	        "LEFT JOIN ( " +
+	            "SELECT IF(COUNT(*) > 0, 'Y', 'N') AS IS_MANAGER, IFNULL(A.EMPLOYEEID, 0) AS EMPLOYEEID " +
+	            "FROM HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS A " +
+	            "JOIN HCLHRM_PROD.tbl_employee_primary B ON B.EMPLOYEEID = A.MANAGERID " +
+	            "WHERE B.EMPLOYEESEQUENCENO IN (?) " +
+	            "LIMIT 1 " +
+	        ") YY ON 1 = 1 " +
+	        "WHERE A.EMPLOYEESEQUENCENO = ?";
+
+	    try {
+	        Map<String, Object> result = jdbcTemplate.queryForMap(sql, userName, userName);
+
+	        String code = (String) result.get("CODE");
+	        String email = (String) result.get("EMAIL");
+
+	        if (Arrays.asList("1001", "1092", "1401").contains(code) && !email.isEmpty()) {
+	            to_mail = email;
+	        } else {
+	            // No exception, just skip assignment or log
+	            System.out.println("Manager email not found or code is not allowed for user: " + userName);
+	        }
+
+	    } catch (Exception e) {
+	        System.out.println("Error fetching manager email: " + e.getMessage());
+	    }
+
+	    return to_mail;
+	}
+
+  
+  
 }
