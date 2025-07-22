@@ -3,16 +3,21 @@ package com.hetero.heteroiconnect.insurancefiles;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hetero.heteroiconnect.contractdetails.FileUtil;
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
+import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
 
@@ -24,10 +29,14 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 	@Value("${insurance.usermanuals.path}")
 	private String directoryPath;
 
+	@Value("${company.forms.path}")
+	private String formsPath;
+
 	public InsuranceFilesServiceImpl(InsuranceFilesRepository insuranceFilesRepository,
 			MessageBundleSource messageBundleSource) {
 		this.insuranceFilesRepository = insuranceFilesRepository;
 		this.messageBundleSource = messageBundleSource;
+
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
@@ -83,6 +92,17 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 					messageBundleSource.getmessagebycode("emp.insurance.usermanual.error", new Object[] {}), e);
 		}
 		return fileContents;
+	}
+
+	@Transactional(readOnly = true)
+	public Map<String, byte[]> getHrForms() {
+		try (Stream<Path> paths = Files.walk(Paths.get(formsPath), 1)) {
+			return paths.filter(Files::isRegularFile).collect(Collectors.toMap(path -> path.getFileName().toString(),
+					path -> FileUtil.getFileContentAsBytes(path.toString())));
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("hr.registration.forms.error", new Object[] {}), e);
+		}
 	}
 
 }

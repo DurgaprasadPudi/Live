@@ -48,4 +48,10 @@ public class InsuranceFilesController {
 	public ResponseEntity<Map<String, byte[]>> getUserManuals() {
 		return ResponseEntity.ok(insuranceFilesService.getUserManuals());
 	}
+
+	@GetMapping("/forms")
+	@Cacheable("forms")
+	public ResponseEntity<Map<String, byte[]>> getHrForms() {
+		return ResponseEntity.ok(insuranceFilesService.getHrForms());
+	}
 }
