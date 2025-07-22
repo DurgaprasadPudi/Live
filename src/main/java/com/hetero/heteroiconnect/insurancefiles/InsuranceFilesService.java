@@ -15,4 +15,6 @@ public interface InsuranceFilesService {
 
 	Map<String, byte[]> getUserManuals();
 
+	Map<String, byte[]> getHrForms();
+
 }
