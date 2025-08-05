@@ -24,6 +24,8 @@ import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundExcepti
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.promotion.exception.ErrorMessage;
 import com.hetero.heteroiconnect.requisition.forms.UploadPositionException;
+import com.hetero.heteroiconnect.sfa_attendance.SfaAttendanceFetchingException;
+import com.hetero.heteroiconnect.sfa_attendance.SfaEmployeesFetchingException;
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.AssignItemsException;
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.AssignedItemsHistoryFetchingException;
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.ChildRegistrationFetchingException;
@@ -373,6 +375,18 @@ public class GlobalExceptionHandler {
 
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 
+	}
+	
+	@ExceptionHandler(SfaEmployeesFetchingException.class)
+	public ResponseEntity<ErrorResponse> handleException(SfaEmployeesFetchingException ex) {
+		ErrorResponse errorResponse = new ErrorResponse("Sfa employees fetching error", ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+ 
+	@ExceptionHandler(SfaAttendanceFetchingException.class)
+	public ResponseEntity<ErrorResponse> handleException(SfaAttendanceFetchingException ex) {
+		ErrorResponse errorResponse = new ErrorResponse("Sfa attendance fetching error", ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 
 }
