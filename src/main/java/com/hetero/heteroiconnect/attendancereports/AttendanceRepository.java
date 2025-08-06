@@ -503,4 +503,38 @@ public class AttendanceRepository {
 			return payPeriod;
 		}).collect(Collectors.toList());
 	}
+	
+	
+	public List<Map<String, Object>> getReaderData(LocalDate fromDate, LocalDate toDate) {
+		StringBuilder readerDataQuery = new StringBuilder(" ");
+		List<Object> params = new ArrayList<>();
+ 
+		readerDataQuery.append(" SELECT t.employeeid EMPID,ifnull(callname,'--') NAME, ");
+		readerDataQuery.append(" date(transactiontime) DATE, r.readername READER ");
+		readerDataQuery.append(" FROM unit_local_db.tbl_reader_log t ");
+		readerDataQuery.append(" LEFT JOIN hclhrm_prod.tbl_employee_primary b ON t.employeeid=b.employeesequenceno ");
+		readerDataQuery.append(" LEFT JOIN unit_local_db.tbl_reader r ON r.readerid=t.readerid ");
+		readerDataQuery.append(" WHERE 1=1 ");
+ 
+		// Date conditions
+		if (fromDate != null) {
+			if (toDate != null) {
+				readerDataQuery
+						.append(" AND t.readerid in (44,45,47,49,50) AND date(transactiontime) BETWEEN ? AND ? ");
+				params.add(java.sql.Date.valueOf(fromDate));
+				params.add(java.sql.Date.valueOf(toDate));
+			} else {
+				readerDataQuery.append(" AND t.readerid in (44,45,47,49,50) AND date(transactiontime) >= ? ");
+				params.add(java.sql.Date.valueOf(fromDate));
+			}
+		} else {
+			readerDataQuery.append(" AND date(transactiontime)=curdate() AND t.readerid in (44,45,47,49,50) ");
+		}
+		readerDataQuery.append(" GROUP BY t.employeeid,date(transactiontime) ");
+ 
+		return jdbcTemplate.queryForList(readerDataQuery.toString(), params.toArray());
+	}
+	
+	
+	
 }

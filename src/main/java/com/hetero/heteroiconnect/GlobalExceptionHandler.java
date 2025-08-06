@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.hetero.heteroiconnect.attendancereports.AttendanceDataFetchingException;
 import com.hetero.heteroiconnect.attendancereports.LocationsFetchingException;
 import com.hetero.heteroiconnect.attendancereports.PayPeriodMonthsFetchingException;
+import com.hetero.heteroiconnect.attendancereports.ReaderDataFetchingException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.promotion.exception.ErrorMessage;
@@ -54,7 +55,6 @@ import com.hetero.heteroiconnect.worksheet.exceptionhandler.ValidationErrorRespo
 import com.hetero.heteroiconnect.worksheet.report.Exception.ManagerAccessDeniedException;
 import com.hetero.heteroiconnect.worksheet.report.Exception.NotFiledDataException;
 import com.hetero.heteroiconnect.worksheet.report.entity.ReportErrorResponse;
-
 import com.hetero.heteroiconnect.zonedetails.EmptyDataNotFoundException;
 
 @ControllerAdvice
@@ -376,16 +376,22 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 
 	}
-	
+
 	@ExceptionHandler(SfaEmployeesFetchingException.class)
 	public ResponseEntity<ErrorResponse> handleException(SfaEmployeesFetchingException ex) {
 		ErrorResponse errorResponse = new ErrorResponse("Sfa employees fetching error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
- 
+
 	@ExceptionHandler(SfaAttendanceFetchingException.class)
 	public ResponseEntity<ErrorResponse> handleException(SfaAttendanceFetchingException ex) {
 		ErrorResponse errorResponse = new ErrorResponse("Sfa attendance fetching error", ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+
+	@ExceptionHandler(ReaderDataFetchingException.class)
+	public ResponseEntity<ErrorResponse> handleException(ReaderDataFetchingException ex) {
+		ErrorResponse errorResponse = new ErrorResponse("Reader Data Fetching Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 

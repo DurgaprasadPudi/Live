@@ -1,5 +1,6 @@
 package com.hetero.heteroiconnect.attendancereports;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +68,18 @@ public class AttendanceService {
 			logger.error("{} error fetching pay period months", e.getMessage());
 			throw new PayPeriodMonthsFetchingException(
 					messageBundleSource.getmessagebycode("payperiod.months.error", new Object[] {}));
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public List<Map<String, Object>> getReaderData(LocalDate fromDate, LocalDate toDate) {
+		try {
+			return attendanceRepository.getReaderData(fromDate, toDate);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("{} error fetching reader data", e.getMessage());
+			throw new ReaderDataFetchingException(
+					messageBundleSource.getmessagebycode("reader.data.fetch.error", new Object[] {}));
 		}
 	}
 }
