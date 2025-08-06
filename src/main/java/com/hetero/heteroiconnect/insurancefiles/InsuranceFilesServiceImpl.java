@@ -19,6 +19,7 @@ import com.hetero.heteroiconnect.contractdetails.FileUtil;
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
 import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
+import com.hetero.heteroiconnect.worksheet.model.Master;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
 
 @Service
@@ -105,4 +106,92 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		}
 	}
 
+	@Transactional(rollbackFor = Throwable.class)
+	public Boolean getDates() {
+		try {
+			return insuranceFilesRepository.getDates();
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("family.insurance.enable.dates.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public EmployeeBasicDetailsDTO getEmployeeDetails(int empId) {
+		try {
+			return insuranceFilesRepository.getEmployeeDetails(empId);
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(messageBundleSource
+					.getmessagebycode("employee.family.member.insurance.details.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public List<Master> getRelation() {
+		return insuranceFilesRepository.getRelation();
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public ApiResponse deleteFamilyMember(int familyMemberId) {
+		try {
+			return insuranceFilesRepository.deleteFamilyMember(familyMemberId);
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("family.member.delete.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public ApiResponse getIntrestFlag(int familyMemberId, int flag) {
+		try {
+			return insuranceFilesRepository.getIntrestFlag(familyMemberId, flag);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("family.member.update.flag.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public ApiResponse saveFamilyMembers(UploadFamilyMembersDetails uploadDetails) {
+		try {
+			return insuranceFilesRepository.saveFamilyMembers(uploadDetails);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("family.members.upload.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public List<EmployeeInsuranceCompleteDetailsDTO> getInsurancePremiumDetails() {
+		try {
+			return insuranceFilesRepository.getInsurancePremiumDetails();
+		} catch (Exception e) {
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("insurance.details.premium.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public ApiResponse uploadPremiumDetailsInfo(MultipartFile file) {
+		try {
+			return insuranceFilesRepository.uploadPremiumDetailsInfo(file);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("insurance.details.premium.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(rollbackFor = Throwable.class)
+	public ApiResponse updateInterestStatus(int premiumInfoId, int flag) {
+		try {
+			return insuranceFilesRepository.updateInterestStatus(premiumInfoId, flag);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("insurance.interest.update.error", new Object[] {}), e);
+		}
+	}
 }

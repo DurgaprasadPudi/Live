@@ -11,19 +11,33 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.ResultSet;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
+import com.hetero.heteroiconnect.worksheet.model.Master;
 import com.hetero.heteroiconnect.worksheet.utility.MessageBundleSource;
+import com.ibm.icu.text.SimpleDateFormat;
 
 @Repository
 public class InsuranceFilesRepository {
@@ -110,31 +124,26 @@ public class InsuranceFilesRepository {
 //			logger.debug("File saved: {}", targetFile.getAbsolutePath());
 //		}
 //	}
-	
+
 	private void saveFileToDisk(MultipartFile file, File targetFile) throws IOException {
-	    File directory = targetFile.getParentFile();
-	    if (!directory.exists()) {
-	        boolean created = directory.mkdirs();
-	        logger.debug("Directory created: {}", created);
-	    }
+		File directory = targetFile.getParentFile();
+		if (!directory.exists()) {
+			boolean created = directory.mkdirs();
+			logger.debug("Directory created: {}", created);
+		}
 
-	    try (InputStream in = file.getInputStream();
-	         OutputStream out = new BufferedOutputStream(new FileOutputStream(targetFile))) {
+		try (InputStream in = file.getInputStream();
+				OutputStream out = new BufferedOutputStream(new FileOutputStream(targetFile))) {
 
-	        byte[] buffer = new byte[8192]; // 8 KB buffer
-	        int bytesRead;
-	        while ((bytesRead = in.read(buffer)) != -1) {
-	            out.write(buffer, 0, bytesRead);
-	        }
+			byte[] buffer = new byte[8192]; // 8 KB buffer
+			int bytesRead;
+			while ((bytesRead = in.read(buffer)) != -1) {
+				out.write(buffer, 0, bytesRead);
+			}
 
-	        logger.debug("File saved: {}", targetFile.getAbsolutePath());
-	    }
+			logger.debug("File saved: {}", targetFile.getAbsolutePath());
+		}
 	}
-
-	
-	
-	
-	
 
 	public InsuranceFileDTO getEmployeeInsuranceDetails(Integer loginId) {
 		String sql = "SELECT a. employeesequenceno as employee_id, b.self_file_path, b.family_file_path, "
@@ -223,4 +232,234 @@ public class InsuranceFilesRepository {
 		}
 		return Paths.get(fullPath).getFileName().toString();
 	}
+
+	public Boolean getDates() {
+		String currentMonthYear = new SimpleDateFormat("yyyyMMdd").format(new Date());
+		String sql = "SELECT COUNT(*) " + "FROM test.tbl_family_insurance_enable_dates " + "WHERE status = 1001 "
+				+ "AND ? BETWEEN from_date AND to_date";
+		Integer count = jdbcTemplate.queryForObject(sql, new Object[] { currentMonthYear }, Integer.class);
+		return count != null && count > 0;
+	}
+
+	public EmployeeBasicDetailsDTO getEmployeeDetails(int empId) {
+		String sql = "SELECT " + "A.EMPLOYEESEQUENCENO AS empId, " + "A.CALLNAME AS name, " + "BU.NAME AS division, "
+				+ "IFNULL(DEP.NAME, '') AS department, " + "IFNULL(DES.NAME, '') AS designation, "
+				+ "GEN.NAME AS gender, " + "IFNULL(DATE_FORMAT(PROFILE.DATEOFJOIN, '%d-%m-%Y'), '') AS doj, "
+				+ "DATE_FORMAT(A.DATEOFBIRTH, '%d-%m-%Y') AS dob,info.marital_status "
+				+ "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID "
+				+ "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE PROFILE ON A.EMPLOYEEID = PROFILE.EMPLOYEEID "
+				+ "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS DD ON A.EMPLOYEEID = DD.EMPLOYEEID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_DEPARTMENT DEP ON DD.DEPARTMENTID = DEP.DEPARTMENTID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_DESIGNATION DES ON DD.DESIGNATIONID = DES.DESIGNATIONID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_GENDER GEN ON A.GENDER = GEN.GENDER "
+				+ "LEFT JOIN test.tbl_employee_marital_info info on a.employeesequenceno = info.employee_id "
+				+ "WHERE A.EMPLOYEESEQUENCENO = ?";
+
+		return jdbcTemplate.queryForObject(sql,
+				(rs, rowNum) -> new EmployeeBasicDetailsDTO(getFlag(rs.getString("doj")), rs.getString("empId"),
+						rs.getString("name"), rs.getString("division"), rs.getString("department"),
+						rs.getString("designation"), rs.getString("gender"), rs.getString("doj"), rs.getString("dob"),
+						rs.getString("marital_status"), getGrossPremium(rs.getString("empId")),
+						getFamilyDetails(empId)),
+				empId);
+	}
+
+	public Boolean getFlag(String doj) {
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+			LocalDate givenDate = LocalDate.parse("01-07-2025", formatter);
+			// LocalDate givenDate = LocalDate.parse("doj", formatter);
+			LocalDate now = LocalDate.now();
+			boolean isSameMonthYear = givenDate.getMonthValue() == now.getMonthValue()
+					&& givenDate.getYear() == now.getYear();
+			return isSameMonthYear ? true : getDates();
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	public List<FamilyInsuranceDetailsDTO> getFamilyDetails(int empId) {
+		String sql = "SELECT a.family_id AS familyId, a.employee_id AS employeeId, b.relation_name AS relationName, "
+				+ "a.fullname AS fullname, a.gender AS gender, DATE_FORMAT(a.dob, '%d-%m-%Y') AS dob, a.age AS age,status_flag "
+				+ "FROM test.tbl_family_insurance_details a "
+				+ "LEFT JOIN test.tbl_master_relations b ON a.relation_id = b.relation_id "
+				+ "WHERE a.employee_id = ? AND a.status = 1001";
+		try {
+			return jdbcTemplate.query(sql.toString(),
+					(rs, rowNum) -> new FamilyInsuranceDetailsDTO(rs.getInt("familyId"), rs.getInt("employeeId"),
+							rs.getString("relationName"), rs.getString("fullname"), rs.getString("gender"),
+							rs.getString("dob"), rs.getString("age"), rs.getInt("status_flag")),
+					empId);
+		} catch (DataAccessException e) {
+			return Collections.emptyList();
+		}
+	}
+
+	public List<Master> getRelation() {
+		String sql = "select  relation_id ,relation_name from test.tbl_master_relations  where status=1001";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+			Master relation = new Master();
+			relation.setId(rs.getInt("relation_id"));
+			relation.setName(rs.getString("relation_name"));
+			return relation;
+		});
+	}
+
+	public ApiResponse deleteFamilyMember(int familyMemberId) {
+		String sql = "UPDATE test.tbl_family_insurance_details SET status = 1002 WHERE family_id = ? and status=1001";
+		int updatedRows = jdbcTemplate.update(sql, familyMemberId);
+		String message = (updatedRows > 0) ? "Family member deleted successfully."
+				: "No family member found with the given ID.";
+		return new ApiResponse(message);
+	}
+
+	public ApiResponse getIntrestFlag(int familyMemberId, int flag) {
+		String sql = "UPDATE test.tbl_family_insurance_details SET status_flag = ? WHERE family_id = ? and status=1001";
+		int updatedRows = jdbcTemplate.update(sql, flag, familyMemberId);
+		String message = (updatedRows > 0) ? "Interest shared successfully."
+				: "No family member found with the given ID.";
+		return new ApiResponse(message);
+	}
+
+	public ApiResponse saveFamilyMembers(UploadFamilyMembersDetails uploadDetails) {
+		String insertFamilySql = "INSERT INTO test.tbl_family_insurance_details "
+				+ "(employee_id, relation_id, fullname, gender, dob, age, status_flag, status, created_date_time) "
+				+ "VALUES (?, ?, ?, ?, ?, ?, ?, 1001, NOW())";
+		/*
+		 * String insertMaritalSql = "INSERT INTO test.tbl_employee_marital_info " +
+		 * "(employee_id, marital_status) VALUES (?, ?)";
+		 */
+
+		String insertMaritalSql = "INSERT INTO test.tbl_employee_marital_info (employee_id, marital_status) "
+				+ "VALUES (?, ?) " + "ON DUPLICATE KEY UPDATE marital_status = VALUES(marital_status)";
+
+		jdbcTemplate.update(insertMaritalSql, uploadDetails.getEmployeeId(), uploadDetails.getMaritalStatus());
+		uploadDetails.getFamilyDetailsUpload().forEach(detail -> {
+			jdbcTemplate.update(insertFamilySql, uploadDetails.getEmployeeId(), detail.getRelation(),
+					detail.getFullname(), detail.getGender(), detail.getDob(), detail.getAge(), detail.getFlag());
+		});
+		return new ApiResponse("Family members inserted successfully.");
+	}
+
+	public List<EmployeeInsuranceCompleteDetailsDTO> getInsurancePremiumDetails() {
+		String sql = "SELECT " + "A.EMPLOYEESEQUENCENO AS empId, " + "A.CALLNAME AS name, 'EMP' AS relation, "
+				+ "BU.NAME AS division, " + "IFNULL(DEP.NAME, '') AS department, "
+				+ "IFNULL(DES.NAME, '') AS designation, "
+				+ "IFNULL(DATE_FORMAT(PROFILE.DATEOFJOIN, '%d-%m-%Y'), '') AS doj, " + "GEN.NAME AS gender, "
+				+ "DATE_FORMAT(A.DATEOFBIRTH, '%d-%m-%Y') AS dob, "
+				+ "TIMESTAMPDIFF(YEAR, A.DATEOFBIRTH, CURDATE()) AS age, " + "info.marital_status, "
+				+ "dm.sum_insurance " + "FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A "
+				+ "LEFT JOIN HCLADM_PROD.TBL_BUSINESSUNIT BU ON A.COMPANYID = BU.BUSINESSUNITID "
+				+ "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE PROFILE ON A.EMPLOYEEID = PROFILE.EMPLOYEEID "
+				+ "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFESSIONAL_DETAILS DD ON A.EMPLOYEEID = DD.EMPLOYEEID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_DEPARTMENT DEP ON DD.DEPARTMENTID = DEP.DEPARTMENTID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_DESIGNATION DES ON DD.DESIGNATIONID = DES.DESIGNATIONID "
+				+ "LEFT JOIN HCLADM_PROD.TBL_GENDER GEN ON A.GENDER = GEN.GENDER "
+				+ "LEFT JOIN test.tbl_employee_marital_info info ON A.EMPLOYEESEQUENCENO = info.employee_id "
+				+ "LEFT JOIN test.tbl_insurance_designation_map dm ON DD.DESIGNATIONID = dm.designation_id "
+				+ "WHERE A.EMPLOYEESEQUENCENO IN (SELECT employee_id FROM test.tbl_employee_marital_info)";
+
+		return jdbcTemplate.query(sql,
+				(rs, rowNum) -> new EmployeeInsuranceCompleteDetailsDTO(rs.getString("empId"), rs.getString("name"),
+						rs.getString("relation"), rs.getString("division"), rs.getString("department"),
+						rs.getString("designation"), rs.getString("doj"), rs.getString("gender"), rs.getString("dob"),
+						String.valueOf(rs.getInt("age")), rs.getString("marital_status"),
+						getGrossPremium(rs.getString("empId")), getFamilyPremiumDetails(rs.getString("empId"))));
+	}
+
+	// getGrossPremium(rs.getString("empId"))
+	public List<FamilyInsuranceCompleteDetailsDTO> getFamilyPremiumDetails(String empId) {
+		String sql = "SELECT " + "a.employee_id, " + "a.fullname, " + "IFNULL(b.relation_name, '') AS relation_name, "
+				+ "IFNULL(a.gender, '') AS gender, " + "IFNULL(a.dob, '') AS dob, " + "IFNULL(a.age, 0) AS age, "
+				+ "'' AS division, " + "'' AS department, " + "'' AS designation, " + "'' AS doj, "
+				+ "'' AS marital_status, " + "'' AS sum_insurance, " + "'0' AS grossPremium "
+				+ "FROM test.tbl_family_insurance_details a "
+				+ "LEFT JOIN test.tbl_master_relations b ON a.relation_id = b.relation_id "
+				+ "WHERE a.employee_id = ? AND a.status_flag = 1 AND a.status = 1001";
+
+		return jdbcTemplate.query(sql,
+				(rs, rowNum) -> new FamilyInsuranceCompleteDetailsDTO(rs.getString("employee_id"),
+						rs.getString("fullname"), rs.getString("relation_name"), rs.getString("division"),
+						rs.getString("department"), rs.getString("designation"), rs.getString("doj"),
+						rs.getString("gender"), rs.getString("dob"), String.valueOf(rs.getInt("age")),
+						rs.getString("marital_status"), rs.getString("sum_insurance"), rs.getString("grossPremium")),
+				empId);
+	}
+
+	// IFNULL( interest_flag,1) as
+	public PremiumInfoDTO getGrossPremium(String empId) {
+		String sql = "SELECT id, sum_insurance, gross_premium, IFNULL(NULLIF(interest_flag,'NA'),'NA' )as interest_flag   "
+				+ "FROM test.tbl_family_insurance_premium_info " + "WHERE employee_id = ? and status=1001 "
+				+ "ORDER BY id DESC LIMIT 1";
+		try {
+			return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+				return new PremiumInfoDTO(rs.getInt("id"), rs.getString("sum_insurance"), rs.getString("gross_premium"),
+						rs.getString("interest_flag"));
+			}, empId);
+		} catch (EmptyResultDataAccessException e) {
+			return null;
+		}
+	}
+
+	public ApiResponse uploadPremiumDetailsInfo(MultipartFile file) {
+		String insertSql = "INSERT INTO test.tbl_family_insurance_premium_info "
+				+ "(employee_id, sum_insurance, gross_premium, created_date_time) " + "VALUES (?, ?, ?, NOW())";
+
+		try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+			Sheet sheet = workbook.getSheetAt(0);
+			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+				Row row = sheet.getRow(i);
+				if (row == null)
+					continue;
+
+				String empId = getStringCellValue(row.getCell(1));
+				String relation = getStringCellValue(row.getCell(3));
+				Double sumInsurance = getNumericCellValue(row.getCell(11));
+				Double grossPremium = getNumericCellValue(row.getCell(14));
+
+				if (empId == null || relation == null || sumInsurance == null || grossPremium == null)
+					continue;
+
+				if ("EMP".equalsIgnoreCase(relation)) {
+					jdbcTemplate.update(insertSql, empId, sumInsurance, grossPremium);
+				}
+			}
+			return new ApiResponse("EMP premium records inserted successfully.");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ApiResponse("Error uploading data: " + e.getMessage());
+		}
+	}
+
+	private String getStringCellValue(Cell cell) {
+		if (cell == null)
+			return null;
+
+		switch (cell.getCellType()) {
+		case STRING:
+			return cell.getStringCellValue().trim();
+		case NUMERIC:
+			return String.valueOf((long) cell.getNumericCellValue());
+		default:
+			return null;
+		}
+	}
+
+	private Double getNumericCellValue(Cell cell) {
+		if (cell == null)
+			return null;
+		return cell.getCellType() == CellType.NUMERIC ? cell.getNumericCellValue() : null;
+	}
+
+	public ApiResponse updateInterestStatus(int premiumInfoId, int flag) {
+		String sql = "UPDATE test.tbl_family_insurance_premium_info "
+				+ "SET interest_flag = ?, interest_showed_date = NOW() " + "WHERE id = ? AND status = 1001";
+
+		int updatedRows = jdbcTemplate.update(sql, flag, premiumInfoId);
+
+		String message = (updatedRows > 0) ? "Interest shared successfully." : "No record found with the given ID.";
+		return new ApiResponse(message);
+	}
+
 }
