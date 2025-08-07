@@ -24,11 +24,11 @@ public class SfaRepository {
 	public Map<String, Object> getPayrollDates() {
 		StringBuilder payrollDatesQuery = new StringBuilder();
 		payrollDatesQuery.append(" SELECT ");
-		payrollDatesQuery.append(" FROMDATE AS PAYPERIODFROMDATE, ");
+		payrollDatesQuery.append(" FROMDATE AS startDate, ");
 		payrollDatesQuery.append(" DATE_ADD( ");
 		payrollDatesQuery.append(" FROMDATE, ");
 		payrollDatesQuery.append(" INTERVAL DAY(LAST_DAY(DATE_ADD(FROMDATE, INTERVAL 1 MONTH)) - 1) DAY ");
-		payrollDatesQuery.append(" ) AS PAYPERIODTODATE ");
+		payrollDatesQuery.append(" ) AS endDate ");
 		payrollDatesQuery.append(" FROM HCLHRM_PROD_OTHERS.TBL_ICONNECT_TRANSACTION_DATES ");
 		payrollDatesQuery.append(" WHERE transactiontypeid = 1 ");
 		payrollDatesQuery.append("  AND businessunitid = 11 ");
@@ -37,5 +37,21 @@ public class SfaRepository {
 		payrollDatesQuery.append(" ORDER BY transactionduration DESC ");
 		payrollDatesQuery.append(" LIMIT 12 ");
 		return jdbcTemplate.queryForMap(payrollDatesQuery.toString());
+	}
+
+	public Map<String, Object> getEmployeeDetails(String empId) {
+		StringBuilder employeeDetailsQuery = new StringBuilder();
+		employeeDetailsQuery.append(
+				" SELECT a.callname Name,b.name Status,g.name CostCenter,c.name Division,e.name Department,f.name Designation ");
+		employeeDetailsQuery.append(" FROM hclhrm_prod.tbl_employee_primary a ");
+		employeeDetailsQuery.append(" LEFT JOIN hclhrm_prod.tbl_status_codes b ON b.status=a.status ");
+		employeeDetailsQuery.append(" LEFT JOIN hcladm_prod.tbl_businessunit c ON c.businessunitid=a.companyid ");
+		employeeDetailsQuery
+				.append(" LEFT JOIN hclhrm_prod.tbl_employee_professional_details d ON d.employeeid=a.employeeid ");
+		employeeDetailsQuery.append(" LEFT JOIN hcladm_prod.tbl_department e ON e.departmentid=d.departmentid ");
+		employeeDetailsQuery.append(" LEFT JOIN hcladm_prod.tbl_designation f ON f.designationid=d.designationid ");
+		employeeDetailsQuery.append(" LEFT JOIN hcladm_prod.tbl_costcenter g ON g.costcenterid=a.costcenterid ");
+		employeeDetailsQuery.append(" WHERE employeesequenceno=? ");
+		return jdbcTemplate.queryForMap(employeeDetailsQuery.toString(), empId);
 	}
 }
