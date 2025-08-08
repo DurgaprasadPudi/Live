@@ -21,6 +21,8 @@ import com.hetero.heteroiconnect.attendancereports.AttendanceDataFetchingExcepti
 import com.hetero.heteroiconnect.attendancereports.LocationsFetchingException;
 import com.hetero.heteroiconnect.attendancereports.PayPeriodMonthsFetchingException;
 import com.hetero.heteroiconnect.attendancereports.ReaderDataFetchingException;
+import com.hetero.heteroiconnect.couriertracker.DocketAlreadyFoundException;
+import com.hetero.heteroiconnect.couriertracker.DocketMissingException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.promotion.exception.ErrorMessage;
@@ -394,5 +396,22 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse("Reader Data Fetching Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
+	
+	@ExceptionHandler(DocketAlreadyFoundException.class)
+	public ResponseEntity<ErrorResponse> handleDocketExists(DocketAlreadyFoundException ex) {
+	    return new ResponseEntity<>(
+	        new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()), 
+	        HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(DocketMissingException.class)
+	public ResponseEntity<ErrorResponse> handleDocketMissing(DocketMissingException ex) {
+	    return new ResponseEntity<>(
+	        new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()), 
+	        HttpStatus.BAD_REQUEST);
+	}
+
+	
+	 
 
 }
