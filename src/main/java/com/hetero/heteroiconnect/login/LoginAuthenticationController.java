@@ -278,7 +278,7 @@ public class LoginAuthenticationController {
 	         } 
 			 String comparedateTodayformat="";
 		   
-			 
+			  
 			JSONArray colorcodee = new JSONArray();
 			Map<String, String> COLORS = new HashMap();
 				
