@@ -309,11 +309,11 @@ public class LoginAuthenticationController {
 		        	// colorcode.add((arr)Colorcode);
 		        	  
 		        	 comparedateTodayformat=temp[4].toString();
-		         } 
+		         }  
 		         
+		           
 		         
-		         
-		         System.out.println("CALL");
+		         //System.out.println("CALL");
 		         
 		         System.out.println(todate+"todate");
 		         
