@@ -277,7 +277,8 @@ public class LoginAuthenticationController {
 	        	 todate=temp[5].toString();
 	         } 
 			 String comparedateTodayformat="";
-		 
+		   
+			 
 			JSONArray colorcodee = new JSONArray();
 			Map<String, String> COLORS = new HashMap();
 				
@@ -311,7 +312,7 @@ public class LoginAuthenticationController {
 		        	 comparedateTodayformat=temp[4].toString();
 		         }  
 		         
-		           
+		             
 		         
 		         //System.out.println("CALL");
 		         
