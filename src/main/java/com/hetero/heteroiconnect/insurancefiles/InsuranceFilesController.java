@@ -54,15 +54,15 @@ public class InsuranceFilesController {
 
 	@GetMapping("/forms")
 	@Cacheable("forms")
-	public ResponseEntity<Map<String, byte[]>> getHrForms() {
+	public ResponseEntity<List<HrFormDTO>> getHrForms() {
 		return ResponseEntity.ok(insuranceFilesService.getHrForms());
 	}
 
 	// Family Insurance
-	@GetMapping("/familyinsuranceflag")
-	public ResponseEntity<Boolean> getDates() {
-		return ResponseEntity.ok(insuranceFilesService.getDates());
-	}
+	/*
+	 * @GetMapping("/familyinsuranceflag") public ResponseEntity<Boolean> getDates()
+	 * { return ResponseEntity.ok(insuranceFilesService.getDates()); }
+	 */
 
 	@GetMapping("insurancedata/{empId}")
 	public ResponseEntity<EmployeeBasicDetailsDTO> getEmployeeDetails(@PathVariable int empId) {

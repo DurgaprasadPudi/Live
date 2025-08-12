@@ -2,6 +2,7 @@ package com.hetero.heteroiconnect.contractdetails;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
@@ -73,6 +74,11 @@ public class ContractController {
 	public ResponseEntity<ApiResponse> updateDOE(@RequestParam int id, @RequestParam String dateOfExit,
 			@RequestParam(required = false) String comment) {
 		return ResponseEntity.ok(new ApiResponse(contractService.updateDOE(id, dateOfExit, comment)));
+	}
+
+	@GetMapping("/viewfile/{contractPersonId}")
+	public ResponseEntity<Map<String, byte[]>> getFile(@PathVariable int contractPersonId) {
+		return ResponseEntity.ok(contractService.getFile(contractPersonId));
 	}
 
 }

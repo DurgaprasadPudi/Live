@@ -3,19 +3,15 @@ package com.hetero.heteroiconnect.insurancefiles;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.hetero.heteroiconnect.contractdetails.FileUtil;
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
 import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
@@ -95,26 +91,34 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		return fileContents;
 	}
 
+	/*
+	 * @Transactional(readOnly = true) public Map<String, byte[]> getHrForms() { try
+	 * (Stream<Path> paths = Files.walk(Paths.get(formsPath), 1)) { return
+	 * paths.filter(Files::isRegularFile).collect(Collectors.toMap(path ->
+	 * path.getFileName().toString(), path ->
+	 * FileUtil.getFileContentAsBytes(path.toString()))); } catch (Exception e) {
+	 * throw new FuelAndDriverExpensesException(
+	 * messageBundleSource.getmessagebycode("hr.registration.forms.error", new
+	 * Object[] {}), e); } }
+	 */
+
 	@Transactional(readOnly = true)
-	public Map<String, byte[]> getHrForms() {
-		try (Stream<Path> paths = Files.walk(Paths.get(formsPath), 1)) {
-			return paths.filter(Files::isRegularFile).collect(Collectors.toMap(path -> path.getFileName().toString(),
-					path -> FileUtil.getFileContentAsBytes(path.toString())));
+	public List<HrFormDTO> getHrForms() {
+		try {
+			return insuranceFilesRepository.getHrForms();
 		} catch (Exception e) {
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("hr.registration.forms.error", new Object[] {}), e);
 		}
 	}
-
-	@Transactional(rollbackFor = Throwable.class)
-	public Boolean getDates() {
-		try {
-			return insuranceFilesRepository.getDates();
-		} catch (Exception e) {
-			throw new FuelAndDriverExpensesException(
-					messageBundleSource.getmessagebycode("family.insurance.enable.dates.error", new Object[] {}), e);
-		}
-	}
+	
+	/*
+	 * @Transactional(rollbackFor = Throwable.class) public Boolean getDates() { try
+	 * { return insuranceFilesRepository.getDates(); } catch (Exception e) { throw
+	 * new FuelAndDriverExpensesException(
+	 * messageBundleSource.getmessagebycode("family.insurance.enable.dates.error",
+	 * new Object[] {}), e); } }
+	 */
 
 	@Transactional(rollbackFor = Throwable.class)
 	public EmployeeBasicDetailsDTO getEmployeeDetails(int empId) {
@@ -146,7 +150,6 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		try {
 			return insuranceFilesRepository.getIntrestFlag(familyMemberId, flag);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("family.member.update.flag.error", new Object[] {}), e);
 		}
@@ -157,7 +160,6 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		try {
 			return insuranceFilesRepository.saveFamilyMembers(uploadDetails);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("family.members.upload.error", new Object[] {}), e);
 		}
@@ -178,7 +180,6 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		try {
 			return insuranceFilesRepository.uploadPremiumDetailsInfo(file);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("insurance.details.premium.error", new Object[] {}), e);
 		}
@@ -189,7 +190,6 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 		try {
 			return insuranceFilesRepository.updateInterestStatus(premiumInfoId, flag);
 		} catch (Exception e) {
-			e.printStackTrace();
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("insurance.interest.update.error", new Object[] {}), e);
 		}

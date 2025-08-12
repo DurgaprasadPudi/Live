@@ -17,9 +17,9 @@ public interface InsuranceFilesService {
 
 	Map<String, byte[]> getUserManuals();
 
-	Map<String, byte[]> getHrForms();
+	List<HrFormDTO> getHrForms();
 
-	Boolean getDates();
+	// Boolean getDates();
 
 	EmployeeBasicDetailsDTO getEmployeeDetails(int empId);
 
@@ -35,6 +35,6 @@ public interface InsuranceFilesService {
 
 	ApiResponse uploadPremiumDetailsInfo(MultipartFile file);
 
-	ApiResponse updateInterestStatus(int premiumInfoId,int flag);
+	ApiResponse updateInterestStatus(int premiumInfoId, int flag);
 
 }

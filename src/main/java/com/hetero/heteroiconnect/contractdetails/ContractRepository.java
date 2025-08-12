@@ -2,7 +2,9 @@ package com.hetero.heteroiconnect.contractdetails;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -97,9 +99,9 @@ public class ContractRepository {
 	}
 
 	private ContractDetailsDTO mapRowToDto(ResultSet rs) throws SQLException {
-		String fileName = rs.getString("fileName");
-		String filePath = folderPath + fileName;
-		byte[] fileBytes = FileUtil.getFileContentAsBytes(filePath);
+		// String fileName = rs.getString("fileName");
+		// String filePath = folderPath + fileName;
+		// byte[] fileBytes = FileUtil.getFileContentAsBytes(filePath);
 
 		return new ContractDetailsDTO(rs.getInt("contractDetailId"), rs.getInt("companyId"),
 				rs.getString("companyName"), rs.getInt("contractId"), rs.getString("contractName"),
@@ -107,8 +109,8 @@ public class ContractRepository {
 				rs.getString("contractPersonMobileNumber"), rs.getInt("employeeId"), rs.getString("employeeName"),
 				rs.getString("doj"), rs.getString("date_of_exit"), rs.getString("comment"), rs.getInt("genderId"),
 				rs.getString("genderName"), rs.getString("department"), rs.getString("permanentAddress"),
-				rs.getString("presentAddress"), rs.getString("mobileNumber"), rs.getString("aadharNumber"), fileName,
-				fileBytes, rs.getString("createdDateTime"), rs.getString("dob"));
+				rs.getString("presentAddress"), rs.getString("mobileNumber"), rs.getString("aadharNumber"),
+				rs.getString("fileName"), new byte[0], rs.getString("createdDateTime"), rs.getString("dob"));
 	}
 
 	public String deleteEmployeeData(int id) {
@@ -121,6 +123,20 @@ public class ContractRepository {
 		String sql = "UPDATE test.tbl_contract_person_details SET date_of_exit = ?, comment = ? WHERE contract_person_id = ?";
 		int updatedRows = jdbcTemplate.update(sql, dateOfExit, comment, id);
 		return updatedRows > 0 ? "Date Of Exit Added Sucessfully" : "Contract Person not found or already entered DOE";
+	}
+
+	public Map<String, byte[]> getFile(int contractPersonId) {
+		String sql = "SELECT file FROM test.tbl_contract_person_details WHERE contract_person_id = ? and status=1001 ";
+		return jdbcTemplate.query(sql, rs -> {
+			if (rs.next()) {
+				String fileName = rs.getString("file");
+				String filePath = folderPath + fileName;
+				byte[] fileBytes = FileUtil.getFileContentAsBytes(filePath);
+				return Collections.singletonMap("AadharFile", fileBytes);
+			} else {
+				return Collections.emptyMap();
+			}
+		}, contractPersonId);
 	}
 
 }

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,6 @@ public class ContractServiceImpl implements ContractService {
 			contractRepository.uploadContractEmployee(dto);
 			return "Employee uploaded successfully.";
 		} catch (Exception e) {
-			e.printStackTrace();
 			logger.error("Exception occurred while uploading employee ID: {}", dto.getEmployeeId(), e);
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.upload.error", new Object[] {}), e);
@@ -86,8 +86,8 @@ public class ContractServiceImpl implements ContractService {
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
-	public List<ContractType> getContractTypes(int contractId,int companyId) {
-		return contractRepository.getContractTypes(contractId,companyId);
+	public List<ContractType> getContractTypes(int contractId, int companyId) {
+		return contractRepository.getContractTypes(contractId, companyId);
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
@@ -100,6 +100,7 @@ public class ContractServiceImpl implements ContractService {
 		try {
 			return contractRepository.getAllContractDetails();
 		} catch (Exception e) {
+			logger.error("Error fetching contract details", e);
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.fetching.error", new Object[] {}), e);
 		}
@@ -110,6 +111,7 @@ public class ContractServiceImpl implements ContractService {
 		try {
 			return contractRepository.deleteEmployeeData(id);
 		} catch (Exception e) {
+			logger.error("Error deleting employee data for ID: {}", id, e);
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.delete.error", new Object[] {}), e);
 		}
@@ -120,9 +122,20 @@ public class ContractServiceImpl implements ContractService {
 		try {
 			return contractRepository.updateDOE(id, dateOfExit, comment);
 		} catch (Exception e) {
+			logger.error("Error updating DOE for ID: {}", id, e);
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("contract.details.doe.error", new Object[] {}), e);
 		}
 	}
 
+	@Transactional(rollbackFor = Throwable.class)
+	public Map<String, byte[]> getFile(int contractPersonId) {
+		try {
+			return contractRepository.getFile(contractPersonId);
+		} catch (Exception e) {
+			logger.error("Error while fetching file for contractPersonId: {}", contractPersonId, e);
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("contract.file.error", new Object[] {}), e);
+		}
+	}
 }

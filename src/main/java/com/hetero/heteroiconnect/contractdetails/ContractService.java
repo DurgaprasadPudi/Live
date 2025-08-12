@@ -2,6 +2,7 @@ package com.hetero.heteroiconnect.contractdetails;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -14,7 +15,7 @@ public interface ContractService {
 
 	public List<Master> getContracts(int companyId);
 
-	public List<ContractType> getContractTypes(int contractId,int companyId);
+	public List<ContractType> getContractTypes(int contractId, int companyId);
 
 	public List<Master> getGender();
 
@@ -24,4 +25,5 @@ public interface ContractService {
 
 	String updateDOE(int id, String dateOfExit, String comment);
 
+	Map<String, byte[]> getFile(int contractPersonId);
 }

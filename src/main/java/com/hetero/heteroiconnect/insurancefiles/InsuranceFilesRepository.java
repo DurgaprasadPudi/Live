@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hetero.heteroiconnect.contractdetails.FileUtil;
 import com.hetero.heteroiconnect.requisition.forms.ApiResponse;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetUploadException;
 import com.hetero.heteroiconnect.worksheet.model.Master;
@@ -233,6 +234,16 @@ public class InsuranceFilesRepository {
 		return Paths.get(fullPath).getFileName().toString();
 	}
 
+	public List<HrFormDTO> getHrForms() {
+		String sql = "SELECT file_name, file_path FROM test.tbl_hr_registration_forms WHERE status = 1001";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+			String fileName = rs.getString("file_name");
+			String filePath = rs.getString("file_path");
+			byte[] fileContent = FileUtil.getFileContentAsBytes(filePath);
+			return new HrFormDTO(fileName, fileContent);
+		});
+	}
+
 	public Boolean getDates() {
 		String currentMonthYear = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		String sql = "SELECT COUNT(*) " + "FROM test.tbl_family_insurance_enable_dates " + "WHERE status = 1001 "
@@ -268,13 +279,15 @@ public class InsuranceFilesRepository {
 	public Boolean getFlag(String doj) {
 		try {
 			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-			LocalDate givenDate = LocalDate.parse("01-07-2025", formatter);
-			// LocalDate givenDate = LocalDate.parse("doj", formatter);
+			// LocalDate givenDate = LocalDate.parse("01-08-2025", formatter);
+			LocalDate givenDate = LocalDate.parse(doj, formatter);
 			LocalDate now = LocalDate.now();
 			boolean isSameMonthYear = givenDate.getMonthValue() == now.getMonthValue()
 					&& givenDate.getYear() == now.getYear();
 			return isSameMonthYear ? true : getDates();
 		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("came");
 			return false;
 		}
 	}
@@ -371,9 +384,9 @@ public class InsuranceFilesRepository {
 	// getGrossPremium(rs.getString("empId"))
 	public List<FamilyInsuranceCompleteDetailsDTO> getFamilyPremiumDetails(String empId) {
 		String sql = "SELECT " + "a.employee_id, " + "a.fullname, " + "IFNULL(b.relation_name, '') AS relation_name, "
-				+ "IFNULL(a.gender, '') AS gender, " + "IFNULL(a.dob, '') AS dob, " + "IFNULL(a.age, 0) AS age, "
-				+ "'' AS division, " + "'' AS department, " + "'' AS designation, " + "'' AS doj, "
-				+ "'' AS marital_status, " + "'' AS sum_insurance, " + "'0' AS grossPremium "
+				+ "IFNULL(a.gender, '') AS gender, " + "DATE_FORMAT(dob, '%d-%m-%Y')  AS dob, "
+				+ "IFNULL(a.age, 0) AS age, " + "'' AS division, " + "'' AS department, " + "'' AS designation, "
+				+ "'' AS doj, " + "'' AS marital_status, " + "'' AS sum_insurance, " + "'0' AS grossPremium "
 				+ "FROM test.tbl_family_insurance_details a "
 				+ "LEFT JOIN test.tbl_master_relations b ON a.relation_id = b.relation_id "
 				+ "WHERE a.employee_id = ? AND a.status_flag = 1 AND a.status = 1001";
@@ -390,7 +403,8 @@ public class InsuranceFilesRepository {
 	// IFNULL( interest_flag,1) as
 	public PremiumInfoDTO getGrossPremium(String empId) {
 		String sql = "SELECT id, sum_insurance, gross_premium, IFNULL(NULLIF(interest_flag,'NA'),'NA' )as interest_flag   "
-				+ "FROM test.tbl_family_insurance_premium_info " + "WHERE employee_id = ? and status=1001 "
+				+ "FROM test.tbl_family_insurance_premium_info "
+				+ "WHERE employee_id = ? and status=1001  AND YEAR(created_date_time) = YEAR(CURDATE())"
 				+ "ORDER BY id DESC LIMIT 1";
 		try {
 			return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
@@ -457,7 +471,6 @@ public class InsuranceFilesRepository {
 				+ "SET interest_flag = ?, interest_showed_date = NOW() " + "WHERE id = ? AND status = 1001";
 
 		int updatedRows = jdbcTemplate.update(sql, flag, premiumInfoId);
-
 		String message = (updatedRows > 0) ? "Interest shared successfully." : "No record found with the given ID.";
 		return new ApiResponse(message);
 	}
