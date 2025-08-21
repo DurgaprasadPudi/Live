@@ -19,7 +19,7 @@ import net.sf.json.JSONArray;
 public class EmployeeprivilegesConroller {
 	 
     
-	@PersistenceContext
+	@PersistenceContext    
 	EntityManager entityManager;
 	 
 	 
@@ -31,8 +31,21 @@ public class EmployeeprivilegesConroller {
 			JSONArray main = new JSONArray();
 			 	
 		    String Privilege_QRY = "";
-		    Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID where p.employeeid in("+object.getString("empID")+") ";
 		    
+		    
+		    if(object.getString("empID").toString().equals("30546"))
+		    {
+		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID and p.PRIVILEGEID!=12 where p.employeeid in("+object.getString("empID")+") ";
+				    
+		    }
+		    else
+		    {
+		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID where p.employeeid in("+object.getString("empID")+") ";
+				    	
+		    }
+		    	
+		    
+		   
 		   
 		         List<Object[]> Privilege_Obj = entityManager.createNativeQuery(Privilege_QRY).getResultList();
 		         for (Object temp[] : Privilege_Obj) {
