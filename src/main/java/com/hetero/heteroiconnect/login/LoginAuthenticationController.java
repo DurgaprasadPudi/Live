@@ -277,7 +277,8 @@ public class LoginAuthenticationController {
 	        	 todate=temp[5].toString();
 	         } 
 			 String comparedateTodayformat="";
-		 
+		   
+			  
 			JSONArray colorcodee = new JSONArray();
 			Map<String, String> COLORS = new HashMap();
 				
@@ -309,15 +310,22 @@ public class LoginAuthenticationController {
 		        	// colorcode.add((arr)Colorcode);
 		        	  
 		        	 comparedateTodayformat=temp[4].toString();
-		         } 
+		         }  
 		         
+		             
 		         
-		         
-		         System.out.println("CALL");
+		         //System.out.println("CALL");
 		         
 		         System.out.println(todate+"todate");
 		         
-		         if(BUID.equalsIgnoreCase("17"))
+		         
+		         // Assam employee's need assign rights Hyd policy logic
+		         if (object.getString("empID").equals("11110") || object.getString("empID").equals("10717")) {
+		        	    // logs
+		        	    values = call.proc_with_resultset(object.getString("empID"), fromdate, todate, BUID, COLORS, comparedateTodayformat);
+		        	}
+		         
+		         else if(BUID.equalsIgnoreCase("17"))
 		         {
 		        	 values=Ahemd.proc_with_resultset(object.getString("empID"),fromdate,todate,BUID,COLORS,comparedateTodayformat); 
 					  

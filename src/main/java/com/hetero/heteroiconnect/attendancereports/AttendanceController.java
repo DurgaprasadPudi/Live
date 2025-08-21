@@ -1,7 +1,11 @@
 package com.hetero.heteroiconnect.attendancereports;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,5 +47,30 @@ public class AttendanceController {
 			@RequestParam(name = "callName", required = false) String callName,
 			@RequestParam(name = "isPayPeriod") boolean isPayPeriod) {
 		return ResponseEntity.ok(attendanceService.getPayPeriodMonths(empId, location, bu, callName, isPayPeriod));
+	}
+	
+	
+	@PostMapping(value = "/readerdata", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<List<Map<String, Object>>> getReaderData(@RequestBody Map<String, String> request) {
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate fromDate = null;
+		LocalDate toDate = null;
+ 
+		try {
+			Optional<String> fromDateStr = Optional.ofNullable(request.get("fromDateStr"));
+			//Optional<String> toDateStr = Optional.ofNullable(request.get("toDateStr"));
+			
+			Optional<String> toDateStr = Optional.ofNullable(request.get("fromDateStr"));
+ 
+			if (fromDateStr.filter(s -> !s.isEmpty()).isPresent()) {
+				fromDate = LocalDate.parse(fromDateStr.get(), formatter);
+			}
+			if (toDateStr.filter(s -> !s.isEmpty()).isPresent()) {
+				toDate = LocalDate.parse(toDateStr.get(), formatter);
+			}
+		} catch (DateTimeParseException e) {
+			throw new IllegalArgumentException("Invalid date format. Please use 'yyyy-MM-dd'");
+		}
+		return ResponseEntity.ok(attendanceService.getReaderData(fromDate, toDate));
 	}
 }

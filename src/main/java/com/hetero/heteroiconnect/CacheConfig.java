@@ -18,7 +18,7 @@ public class CacheConfig {
 //				"assettypes", "domains"));
 //		return cacheManager; 
 //	}
-
+ 
 	@Bean
 	public CacheManager cacheManager() {
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
