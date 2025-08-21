@@ -25,7 +25,7 @@ public interface InsuranceFilesService {
 
 	public List<Master> getRelation();
 
-	ApiResponse deleteFamilyMember(int familyMemberId);
+	ApiResponse deleteFamilyMember(int familyMemberId, int empId);
 
 	ApiResponse getIntrestFlag(int familyMemberId, int flag);
 

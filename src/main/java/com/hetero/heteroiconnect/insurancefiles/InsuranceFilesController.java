@@ -74,9 +74,9 @@ public class InsuranceFilesController {
 		return ResponseEntity.ok(insuranceFilesService.getRelation());
 	}
 
-	@DeleteMapping("deletefamilymember/{familyMemberId}")
-	public ResponseEntity<ApiResponse> deleteFamilyMember(@PathVariable int familyMemberId) {
-		return ResponseEntity.ok(insuranceFilesService.deleteFamilyMember(familyMemberId));
+	@DeleteMapping("deletefamilymember/{familyMemberId}/{empId}")
+	public ResponseEntity<ApiResponse> deleteFamilyMember(@PathVariable int familyMemberId, @PathVariable int empId) {
+		return ResponseEntity.ok(insuranceFilesService.deleteFamilyMember(familyMemberId, empId));
 	}
 
 	@PostMapping("intrestflag/{familyMemberId}/{flag}")

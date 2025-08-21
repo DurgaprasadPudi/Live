@@ -42,6 +42,7 @@ import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.StockNotAvailabl
 import com.hetero.heteroiconnect.worksheet.exception.DeleteTaskException;
 import com.hetero.heteroiconnect.worksheet.exception.DuplicateEmployeeException;
 import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
+import com.hetero.heteroiconnect.worksheet.exception.InsuranceDetailsDateExpiredException;
 import com.hetero.heteroiconnect.worksheet.exception.TaskApprovalException;
 import com.hetero.heteroiconnect.worksheet.exception.TaskOverlapException;
 import com.hetero.heteroiconnect.worksheet.exception.UserWorkSheetFetchingException;
@@ -52,7 +53,6 @@ import com.hetero.heteroiconnect.worksheet.exceptionhandler.ValidationErrorRespo
 import com.hetero.heteroiconnect.worksheet.report.Exception.ManagerAccessDeniedException;
 import com.hetero.heteroiconnect.worksheet.report.Exception.NotFiledDataException;
 import com.hetero.heteroiconnect.worksheet.report.entity.ReportErrorResponse;
-
 import com.hetero.heteroiconnect.zonedetails.EmptyDataNotFoundException;
 
 @ControllerAdvice
@@ -212,6 +212,12 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleException(FuelAndDriverExpensesException ex) {
 		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+	
+	@ExceptionHandler(InsuranceDetailsDateExpiredException.class)
+	public ResponseEntity<ErrorResponse> handleException(InsuranceDetailsDateExpiredException ex) {
+		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
 	}
 
 	@ExceptionHandler(EmptyDataNotFoundException.class)

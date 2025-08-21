@@ -18,12 +18,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -112,19 +106,6 @@ public class InsuranceFilesRepository {
 		logger.info(successMessage);
 		return new ApiResponse(successMessage);
 	}
-
-//	private void saveFileToDisk(MultipartFile file, File targetFile) throws IOException {
-//		File directory = targetFile.getParentFile();
-//		if (!directory.exists()) {
-//			boolean created = directory.mkdirs();
-//			logger.debug("Directory created: {}", created);
-//		}
-//
-//		try (FileOutputStream fos = new FileOutputStream(targetFile)) {
-//			fos.write(file.getBytes());
-//			logger.debug("File saved: {}", targetFile.getAbsolutePath());
-//		}
-//	}
 
 	private void saveFileToDisk(MultipartFile file, File targetFile) throws IOException {
 		File directory = targetFile.getParentFile();
@@ -286,8 +267,6 @@ public class InsuranceFilesRepository {
 					&& givenDate.getYear() == now.getYear();
 			return isSameMonthYear ? true : getDates();
 		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("came");
 			return false;
 		}
 	}
@@ -335,14 +314,17 @@ public class InsuranceFilesRepository {
 		return new ApiResponse(message);
 	}
 
+	public String getDOJ(int empId) {
+		String sql = "SELECT DATE_FORMAT(profile.DATEOFJOIN, '%d-%m-%Y') AS doj"
+				+ " FROM HCLHRM_PROD.TBL_EMPLOYEE_PRIMARY A " + "LEFT JOIN HCLHRM_PROD.TBL_EMPLOYEE_PROFILE PROFILE "
+				+ "ON A.EMPLOYEEID = PROFILE.EMPLOYEEID " + "WHERE A.employeesequenceno = ?";
+		return jdbcTemplate.queryForObject(sql, new Object[] { empId }, String.class);
+	}
+
 	public ApiResponse saveFamilyMembers(UploadFamilyMembersDetails uploadDetails) {
 		String insertFamilySql = "INSERT INTO test.tbl_family_insurance_details "
 				+ "(employee_id, relation_id, fullname, gender, dob, age, status_flag, status, created_date_time) "
 				+ "VALUES (?, ?, ?, ?, ?, ?, ?, 1001, NOW())";
-		/*
-		 * String insertMaritalSql = "INSERT INTO test.tbl_employee_marital_info " +
-		 * "(employee_id, marital_status) VALUES (?, ?)";
-		 */
 
 		String insertMaritalSql = "INSERT INTO test.tbl_employee_marital_info (employee_id, marital_status) "
 				+ "VALUES (?, ?) " + "ON DUPLICATE KEY UPDATE marital_status = VALUES(marital_status)";
@@ -416,54 +398,10 @@ public class InsuranceFilesRepository {
 		}
 	}
 
-	public ApiResponse uploadPremiumDetailsInfo(MultipartFile file) {
+	public void insertPremiumDetails(List<Object[]> validRecords) {
 		String insertSql = "INSERT INTO test.tbl_family_insurance_premium_info "
-				+ "(employee_id, sum_insurance, gross_premium, created_date_time) " + "VALUES (?, ?, ?, NOW())";
-
-		try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
-			Sheet sheet = workbook.getSheetAt(0);
-			for (int i = 1; i <= sheet.getLastRowNum(); i++) {
-				Row row = sheet.getRow(i);
-				if (row == null)
-					continue;
-
-				String empId = getStringCellValue(row.getCell(1));
-				String relation = getStringCellValue(row.getCell(3));
-				Double sumInsurance = getNumericCellValue(row.getCell(11));
-				Double grossPremium = getNumericCellValue(row.getCell(14));
-
-				if (empId == null || relation == null || sumInsurance == null || grossPremium == null)
-					continue;
-
-				if ("EMP".equalsIgnoreCase(relation)) {
-					jdbcTemplate.update(insertSql, empId, sumInsurance, grossPremium);
-				}
-			}
-			return new ApiResponse("EMP premium records inserted successfully.");
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ApiResponse("Error uploading data: " + e.getMessage());
-		}
-	}
-
-	private String getStringCellValue(Cell cell) {
-		if (cell == null)
-			return null;
-
-		switch (cell.getCellType()) {
-		case STRING:
-			return cell.getStringCellValue().trim();
-		case NUMERIC:
-			return String.valueOf((long) cell.getNumericCellValue());
-		default:
-			return null;
-		}
-	}
-
-	private Double getNumericCellValue(Cell cell) {
-		if (cell == null)
-			return null;
-		return cell.getCellType() == CellType.NUMERIC ? cell.getNumericCellValue() : null;
+				+ "(employee_id, sum_insurance, gross_premium, created_date_time) VALUES (?, ?, ?, NOW())";
+		validRecords.forEach(record -> jdbcTemplate.update(insertSql, record));
 	}
 
 	public ApiResponse updateInterestStatus(int premiumInfoId, int flag) {
