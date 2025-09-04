@@ -117,6 +117,13 @@ public interface LoginUserRepository extends JpaRepository<LoginUser, Long> {
     
      @Query(value = " SELECT IFNULL(PAN,0) FROM hclhrm_prod.tbl_employee_primary a left JOIN  hclhrm_prod.tbl_employee_personalinfo b on a.employeeid=b.employeeid where a.employeesequenceno=:empID", nativeQuery = true)
     String PanNumber(@Param("empID") String LOGINID);
+     
+     
+	@Query(value = "SELECT COUNT(*) " + "FROM HCLHRM_PROD.TBL_EMPLOYEE_LOGIN " + "WHERE EMPLOYEECODE = :empID "
+			+ "AND PASSWORD = :password", nativeQuery = true)
+	int validateLogin(@Param("empID") String empCode, @Param("password") String password);
+
+     
 
 }
             
