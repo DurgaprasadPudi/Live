@@ -35,12 +35,12 @@ public class EmployeeprivilegesConroller {
 		    
 		    if(object.getString("empID").toString().equals("30546"))
 		    {
-		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID and p.PRIVILEGEID!=12 where p.employeeid in("+object.getString("empID")+") ";
+		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID and p.PRIVILEGEID!=12 where p.employeeid in("+object.getString("empID")+") and p.status=1001 ";
 				    
 		    }
 		    else
 		    {
-		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID where p.employeeid in("+object.getString("empID")+") ";
+		    	 Privilege_QRY= " SELECT p.PRIVILEGEID,NAME ACCESSNAME,PARENT FROM hclhrm_prod_others.tbl_employee_iconnect_privileges p left join hclhrm_prod_others.iconnect_rights r on r.PRIVILEGEID=p.PRIVILEGEID where p.employeeid in("+object.getString("empID")+") and p.status=1001 ";
 				    	
 		    }
 		    	

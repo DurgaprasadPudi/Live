@@ -431,8 +431,8 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	}
 
 	@Override
-	public synchronized byte[] courierTrackingService() {
-	    List<Object[]> data = courierTrackingRepository.findAllSenderDataForExport();
+	public synchronized byte[] courierTrackingService(int loginid) {
+	    List<Object[]> data = courierTrackingRepository.findAllSenderDataForExport(loginid);
 
 	    if (data == null || data.isEmpty()) {
 	        throw new EmptyDataNotFoundException("No sender tracking data found.");
@@ -580,9 +580,8 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 //	    }
 //	}
 	
-	@Override
-	public synchronized byte[] receiverTrackingReport() {
-	    List<Object[]> data = courierTrackingRepository.findAllReceiverDataForExport();
+	public synchronized byte[] receiverTrackingReport(int loginid) {
+	    List<Object[]> data = courierTrackingRepository.findAllReceiverDataForExport(loginid);
 
 	    if (data == null || data.isEmpty()) {
 	        throw new EmptyDataNotFoundException("No Receiver tracking data found.");

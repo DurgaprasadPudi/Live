@@ -28,9 +28,9 @@ public interface CourierTrackingService {
 
 	Object getSearch(String name);
 
-	byte[] courierTrackingService();
+	byte[] courierTrackingService(int loginid);
 
-	byte[] receiverTrackingReport();
+	byte[] receiverTrackingReport(int loginid);
 
 	Object getByEmpid(int employeeseq);
 	

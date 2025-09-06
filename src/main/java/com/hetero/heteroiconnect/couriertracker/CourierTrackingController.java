@@ -94,18 +94,18 @@ public class CourierTrackingController {
 	    return ResponseEntity.ok(courierTrackingService.getSearch(name));
 	}
 	
-	@GetMapping(value = "/sendertracking/report", produces = "application/json")
-	public ResponseEntity<byte[]> senderTrackingReport() throws SQLException, IOException {
-		byte[] excelData = courierTrackingService.courierTrackingService();
+	@PostMapping(value = "/sendertracking/report", produces = "application/json")
+	public ResponseEntity<byte[]> senderTrackingReport(@RequestParam int loginid) throws SQLException, IOException {
+		byte[] excelData = courierTrackingService.courierTrackingService(loginid);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 		headers.setContentDispositionFormData("attachment", "courierTrackingSendingReport.xlsx");
 		return new ResponseEntity<>(excelData, headers, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/receivertracking/report", produces = "application/json")
-	public ResponseEntity<byte[]> receiverTrackingReport() throws SQLException, IOException {
-		byte[] excelData = courierTrackingService.receiverTrackingReport();
+	@PostMapping(value = "/receivertracking/report", produces = "application/json")
+	public ResponseEntity<byte[]> receiverTrackingReport(@RequestParam int loginid) throws SQLException, IOException {
+		byte[] excelData = courierTrackingService.receiverTrackingReport(loginid);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 		headers.setContentDispositionFormData("attachment", "receiverTrackingSendingReport.xlsx");
