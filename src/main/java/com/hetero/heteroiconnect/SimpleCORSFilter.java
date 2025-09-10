@@ -17,7 +17,7 @@ public class SimpleCORSFilter implements Filter {
     // Set inactivity timeout to 30 seconds (30,000 milliseconds)
      //private static final long EXPIRY = 30 * 1000L; // 30 seconds
     
-     private static final long EXPIRY = 2 * 60 * 60 * 1000L; // 2 hours in milliseconds
+     private static final long EXPIRY = 12 * 60 * 60 * 1000L; // 2 hours in milliseconds
 
     public SimpleCORSFilter() {
         log.info("SimpleCORSFilter initialized with 30-second timeout");
