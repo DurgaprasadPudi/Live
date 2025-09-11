@@ -215,20 +215,40 @@ public class InsuranceFilesRepository {
 		return Paths.get(fullPath).getFileName().toString();
 	}
 
-	public List<HrFormDTO> getHrForms() {
-		String sql = "SELECT file_name, file_path FROM test.tbl_hr_registration_forms WHERE status = 1001";
+	public List<HrFormDTO> getHrForms(int buId) {
+		String sql = "SELECT bu_id,file_name, file_path FROM test.tbl_hr_registration_forms WHERE bu_id= ? and  status = 1001";
 		return jdbcTemplate.query(sql, (rs, rowNum) -> {
 			String fileName = rs.getString("file_name");
 			String filePath = rs.getString("file_path");
 			byte[] fileContent = FileUtil.getFileContentAsBytes(filePath);
-			return new HrFormDTO(fileName, fileContent);
+			return new HrFormDTO(rs.getInt("bu_id"), fileName, fileContent);
+		}, buId);
+	}
+
+	public List<HrFormDTO> getMasterHrForms() {
+		String sql = "select bu_id ,bu_name,bu_image  from test.tbl_hr_forms_bu_map where status=1001";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+			String fileName = rs.getString("bu_name");
+			String filePath = rs.getString("bu_image");
+			byte[] fileContent = FileUtil.getFileContentAsBytes(filePath);
+			return new HrFormDTO(rs.getInt("bu_id"), fileName, fileContent);
+		});
+	}
+
+	public List<HrFormDTO> getSOPForms() {
+		String sql = "select id ,file_name,file_path  from test.tbl_hr_sop_forms where status=1001";
+		return jdbcTemplate.query(sql, (rs, rowNum) -> {
+			String fileName = rs.getString("file_name");
+			String filePath = rs.getString("file_path");
+			byte[] fileContent = FileUtil.getFileContentAsBytes(filePath);
+			return new HrFormDTO(rs.getInt("id"), fileName, fileContent);
 		});
 	}
 
 	public Boolean getDates() {
 		String currentMonthYear = new SimpleDateFormat("yyyyMMdd").format(new Date());
 		String sql = "SELECT COUNT(*) " + "FROM test.tbl_family_insurance_enable_dates " + "WHERE status = 1001 "
-				+ "AND ? BETWEEN from_date AND to_date";
+				+ "AND ? BETWEEN from_date AND to_date LIMIT 1";
 		Integer count = jdbcTemplate.queryForObject(sql, new Object[] { currentMonthYear }, Integer.class);
 		return count != null && count > 0;
 	}

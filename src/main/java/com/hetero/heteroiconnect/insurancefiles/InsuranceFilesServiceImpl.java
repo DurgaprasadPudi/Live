@@ -119,13 +119,34 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 	 */
 
 	@Transactional(readOnly = true)
-	public List<HrFormDTO> getHrForms() {
+	public List<HrFormDTO> getHrForms(int buId) {
 		try {
-			return insuranceFilesRepository.getHrForms();
+			return insuranceFilesRepository.getHrForms(buId);
 		} catch (Exception e) {
 			logger.error("Error fetching HR forms", e);
 			throw new FuelAndDriverExpensesException(
 					messageBundleSource.getmessagebycode("hr.registration.forms.error", new Object[] {}), e);
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public List<HrFormDTO> getMasterHrForms() {
+		try {
+			return insuranceFilesRepository.getMasterHrForms();
+		} catch (Exception e) {
+			logger.error("Error fetching HR forms", e);
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("hr.registration.forms.error", new Object[] {}), e);
+		}
+	}
+	@Transactional(readOnly = true)
+	public List<HrFormDTO> getSOPForms() {
+		try {
+			return insuranceFilesRepository.getSOPForms();
+		} catch (Exception e) {
+			logger.error("Error fetching SOP HR forms", e);
+			throw new FuelAndDriverExpensesException(
+					messageBundleSource.getmessagebycode("hr.sop.forms.error", new Object[] {}), e);
 		}
 	}
 
@@ -173,9 +194,17 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 	}
 
 	@Transactional(rollbackFor = Throwable.class)
-	public ApiResponse getIntrestFlag(int familyMemberId, int flag) {
+	public ApiResponse getIntrestFlag(int familyMemberId, int flag, int empId) {
 		try {
+			boolean flags = insuranceFilesRepository.getFlag(insuranceFilesRepository.getDOJ(empId));
+			if (!flags) {
+				logger.warn("Delete Family Member ,Date expired for employeeId: {}", empId);
+				throw new InsuranceDetailsDateExpiredException(
+						messageBundleSource.getmessagebycode("family.data.enable.date.error", new Object[] {}));
+			}
 			return insuranceFilesRepository.getIntrestFlag(familyMemberId, flag);
+		} catch (InsuranceDetailsDateExpiredException ex) {
+			throw ex;
 		} catch (Exception e) {
 			logger.error("Error updating interest flag for familyMemberId: {}, flag: {}", familyMemberId, flag, e);
 			throw new FuelAndDriverExpensesException(
@@ -225,6 +254,40 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 	 * new Object[] {}), e); } }
 	 */
 
+	/*
+	 * @Transactional(rollbackFor = Throwable.class) public ApiResponse
+	 * uploadPremiumDetailsInfo(MultipartFile file) { List<String>
+	 * missingGrossPremiumEmployees = new ArrayList<>(); List<Object[]> validRecords
+	 * = new ArrayList<>();
+	 * 
+	 * try (InputStream is = file.getInputStream(); Workbook workbook = new
+	 * XSSFWorkbook(is)) { Sheet sheet = workbook.getSheetAt(0);
+	 * 
+	 * for (int i = 1; i <= sheet.getLastRowNum(); i++) { Row row = sheet.getRow(i);
+	 * if (row == null) continue;
+	 * 
+	 * String empId = getStringCellValue(row.getCell(1)); String relation =
+	 * getStringCellValue(row.getCell(3)); Double sumInsurance =
+	 * getNumericCellValue(row.getCell(11)); Double grossPremium =
+	 * getNumericCellValue(row.getCell(14)); if (empId == null || relation == null
+	 * || sumInsurance == null) continue; if ("EMP".equalsIgnoreCase(relation)) { if
+	 * (grossPremium == null || grossPremium == 0) {
+	 * missingGrossPremiumEmployees.add(empId); } else { validRecords.add(new
+	 * Object[] { empId, sumInsurance, grossPremium }); } } } if
+	 * (!missingGrossPremiumEmployees.isEmpty()) { String missingList =
+	 * String.join(", ", missingGrossPremiumEmployees); throw new
+	 * InsuranceDetailsDateExpiredException(
+	 * "Upload Excel Failed, Gross premium is missing for employees: [" +
+	 * missingList + "]"); }
+	 * insuranceFilesRepository.insertPremiumDetails(validRecords); return new
+	 * ApiResponse("Employee premium records uploaded successfully."); } catch
+	 * (InsuranceDetailsDateExpiredException ex) { throw ex; } catch (Exception e) {
+	 * logger.error("Error uploading premium details file: {}",
+	 * file.getOriginalFilename(), e); throw new FuelAndDriverExpensesException(
+	 * messageBundleSource.getmessagebycode("insurance.details.excel.read.error",
+	 * new Object[] {}), e); } }
+	 */
+
 	@Transactional(rollbackFor = Throwable.class)
 	public ApiResponse uploadPremiumDetailsInfo(MultipartFile file) {
 		List<String> missingGrossPremiumEmployees = new ArrayList<>();
@@ -238,24 +301,20 @@ public class InsuranceFilesServiceImpl implements InsuranceFilesService {
 				if (row == null)
 					continue;
 
-				String empId = getStringCellValue(row.getCell(1));
-				String relation = getStringCellValue(row.getCell(3));
-				Double sumInsurance = getNumericCellValue(row.getCell(11));
-				Double grossPremium = getNumericCellValue(row.getCell(14));
-				if (empId == null || relation == null || sumInsurance == null)
-					continue;
-				if ("EMP".equalsIgnoreCase(relation)) {
-					if (grossPremium == null || grossPremium == 0) {
-						missingGrossPremiumEmployees.add(empId);
-					} else {
-						validRecords.add(new Object[] { empId, sumInsurance, grossPremium });
-					}
+				String empId = getStringCellValue(row.getCell(0));
+				Double sumInsurance = getNumericCellValue(row.getCell(1));
+				Double grossPremium = getNumericCellValue(row.getCell(2));
+
+				if (grossPremium == null || grossPremium == 0 || sumInsurance == null || sumInsurance == 0) {
+					missingGrossPremiumEmployees.add(empId);
+				} else {
+					validRecords.add(new Object[] { empId, sumInsurance, grossPremium });
 				}
 			}
 			if (!missingGrossPremiumEmployees.isEmpty()) {
 				String missingList = String.join(", ", missingGrossPremiumEmployees);
 				throw new InsuranceDetailsDateExpiredException(
-						"Upload Excel Failed, Gross premium is missing for employees: [" + missingList + "]");
+						"Gross premium or Sum Insurance  is missing for employees: [" + missingList + "]");
 			}
 			insuranceFilesRepository.insertPremiumDetails(validRecords);
 			return new ApiResponse("Employee premium records uploaded successfully.");
