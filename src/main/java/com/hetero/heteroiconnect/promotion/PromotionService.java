@@ -32,7 +32,7 @@ public class PromotionService {
 				.append("f.name AS designation, ").append("b.departmentId, ")
 				.append("b.DESIGNATIONID AS designationId, ").append("b.transferreddate AS transferredDate, ")
 				.append("CONCAT(b.prevreportingid, '-', j.callname) AS prevReportingManager,b.prevreportingid, ")
-				.append("b.reportingDate,b.sectionid,b.transactionid,k.callname AS currentReportingManager,b.reportingid ")
+				.append("b.reportingDate,b.sectionid,b.transactionid,k.callname AS currentReportingManager,b.reportingid,b.flag ")
 				.append("FROM hclhrm_prod.tbl_employee_primary a ")
 				.append("JOIN test.tbl_employee_transfers_temp b ON a.employeeid = b.employeeid ")
 				.append("LEFT JOIN hcladm_prod.tbl_department c ON c.departmentid = b.prevdepartmentid ")
