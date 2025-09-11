@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;  
 import java.io.IOException;
 
 @Component
@@ -17,7 +17,10 @@ public class SimpleCORSFilter implements Filter {
     // Set inactivity timeout to 30 seconds (30,000 milliseconds)
      //private static final long EXPIRY = 30 * 1000L; // 30 seconds
     
-     private static final long EXPIRY = 12 * 60 * 60 * 1000L; // 2 hours in milliseconds
+     //private static final long EXPIRY = 12 * 60 * 60 * 1000L; // 2 hours in milliseconds
+     
+     private static final long EXPIRY = 2 * 60 * 60 * 1000L; // 2 hours in milliseconds
+
 
     public SimpleCORSFilter() {
         log.info("SimpleCORSFilter initialized with 30-second timeout");
@@ -29,6 +32,8 @@ public class SimpleCORSFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
 
         String origin = request.getHeader("Origin");
+        
+        
 
         // Allow specific trusted origins (can be expanded to others as needed)
 //        if ("http://localhost:4200".equals(origin) || "https://your-prod-domain.com".equals(origin)) {
@@ -58,7 +63,13 @@ public class SimpleCORSFilter implements Filter {
         lastActive = request.getHeader("X-Last-Active");
         System.err.println(lastActive+"inactiveTooLong");
 
-        if (lastActive != null) {
+        if(lastActive==null)
+        {
+        	 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+             return;
+        }
+        
+        else if (lastActive != null) {
             try {
                 long lastTime = Long.parseLong(lastActive);
                 long now = System.currentTimeMillis();
