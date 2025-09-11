@@ -158,7 +158,7 @@ public class TourController {
 	
 	@GetMapping("/files/{tourid}")
 	public ResponseEntity<Map<String, Object>> tourFiles(@PathVariable int tourid) {
-		Map<String, Object> files = tourService.getTourById(tourid);
+		Map<String, Object> files = tourService.getTourFilesBase64(tourid);
 		return ResponseEntity.ok().header("Content-Type", "application/json").body(files);
 	}
 

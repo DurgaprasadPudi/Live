@@ -109,7 +109,7 @@ public class PromotionController {
 	    try {
 	    	
 	    	System.out.println("call");
-	        String query = "SELECT COUNT(*) AS COUNT, FILEPATH FROM hclhrm_prod.tbl_employee_transfers_temp temp "
+	        String query = "SELECT COUNT(*) AS COUNT, FILEPATH FROM test.tbl_employee_transfers_temp temp "
 	        		+ "LEFT JOIN hclhrm_prod.tbl_employee_primary p on p.employeeid=temp.employeeid "
 	                     + "WHERE p.employeesequenceno= " + emp + " AND temp.TRANSACTIONID = " + Transactionid;
 

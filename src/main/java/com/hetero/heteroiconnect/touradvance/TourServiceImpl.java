@@ -3,6 +3,7 @@ package com.hetero.heteroiconnect.touradvance;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,12 +13,14 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -32,6 +35,8 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.hetero.heteroiconnect.iconnectrights.BadRequestException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 import com.hetero.heteroiconnect.zonedetails.EmptyDataNotFoundException;
 
@@ -44,7 +49,7 @@ public class TourServiceImpl {
 	private String advanceBillUploadPath;
 
 	@Value("${tour.utilizationbil.upload.path}")
-	private String utilizationUploadPath;
+	private String receiptUploadPath;
 
 	@Value("${tour.conveyance_bill.upload.path}")
 	private String billUploadPath;
@@ -160,70 +165,95 @@ public class TourServiceImpl {
 			}
 		});
 	}
-
 	public int saveTourDetails(EmployeeTourDTO tourDTO, boolean forceInsert, MultipartFile advance_bill_file) {
-		EmployeesTourDetailsDTO dto = tourDTO.getEmployeesTourDetailsDTO();
+	    EmployeesTourDetailsDTO dto = tourDTO.getEmployeesTourDetailsDTO();
 
-		if (!forceInsert && isOverlappingTour(dto.getEmployeeId(), dto.getDateOfTravel(), dto.getDateOfReturn())) {
-			return -1;
-		}
+	    if (!forceInsert && isOverlappingTour(dto.getEmployeeId(), dto.getDateOfTravel(), dto.getDateOfReturn())) {
+	        return -1;
+	    }
 
-		if (advance_bill_file != null && !advance_bill_file.isEmpty()) {
-			try {
-				File directory = new File(advanceBillUploadPath);
-				if (!directory.exists()) {
-					directory.mkdirs();
-				}
-				String originalFilename = advance_bill_file.getOriginalFilename();
-				String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-				String fileName = "tour_" + dto.getEmployeeId() + "_" + System.currentTimeMillis() + fileExtension;
-				Path filePath = Paths.get(advanceBillUploadPath, fileName);
-				Files.write(filePath, advance_bill_file.getBytes());
-				dto.setAdvanceBillFile(filePath.toString());
+	    if (advance_bill_file != null && !advance_bill_file.isEmpty()) {
+	        try {
+	            File directory = new File(advanceBillUploadPath);
+	            if (!directory.exists()) {
+	                directory.mkdirs();
+	            }
+	            String originalFilename = advance_bill_file.getOriginalFilename();
+	            String fileExtension = "";
+	            if (originalFilename != null && originalFilename.contains(".")) {
+	                fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+	            }
+	            String fileName = "tour_" + dto.getEmployeeId() + "_" + System.currentTimeMillis() + fileExtension;
+	            Path filePath = Paths.get(advanceBillUploadPath, fileName);
+	            try (InputStream inputStream = advance_bill_file.getInputStream()) {
+	                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+	            }
+	            dto.setAdvanceBillFile(fileName);
 
-			} catch (IOException e) {
-				throw new RuntimeException("Failed to store advance bill file", e);
-			}
-		}
+	        } catch (IOException e) {
+	            throw new BadRequestException("Failed to store advance bill file");
+	        }
+	    }
 
-		int tourId = insertOrGetTourAdvance(dto);
+	    int tourId = insertOrGetTourAdvance(dto);
 
-		List<EmployeeTourTeamMemberDTO> members = tourDTO.getEmployeeTourTeamMemberDTO();
-		if (members != null && !members.isEmpty()) {
-			insertOrUpdateTourTeamMembers(members, tourId);
-		}
+	    List<EmployeeTourTeamMemberDTO> members = tourDTO.getEmployeeTourTeamMemberDTO();
+	    if (members != null && !members.isEmpty()) {
+	        insertOrUpdateTourTeamMembers(members, tourId);
+	    }
 
-		return tourId;
+	    return tourId;
 	}
-
 	public Object getByEmpid(int employeeseq) {
-		StringBuilder query = new StringBuilder();
-		query.append("SELECT ").append("a.employeesequenceno AS EmpCode, ").append("a.callname AS Fullname, ")
-				.append("a.employeeid, ").append("b.designationid, ").append("e.name AS DESIGNATION, ")
-				.append("b.departmentid, ").append("d.name AS DEPT, ").append("a.companyid AS Divisionid, ")
-				.append("f.name AS DIVISION, ").append("g.employmenttypeid, ").append("h.BANKIFC, ")
-				.append("h.BANKACC, ").append("i.bankName, ").append("j.email, ").append("j.mobile, ") // Added missing
-																										// comma
-				.append("k.AADHAARCARDNO ").append("FROM hclhrm_prod.tbl_employee_primary a ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_profile_businessunit c ON c.employeeid = b.employeeid ")
-				.append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = b.departmentid ")
-				.append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = b.designationid ")
-				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = a.companyid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employment_types g ON g.employmenttypeid = a.employmenttypeid ")
-				.append("LEFT JOIN hclhrm_prod_others.tbl_emp_bank_ifc h ON h.empid = b.employeeid ")
-				.append("LEFT JOIN hcladm_prod.tbl_bank_details i ON i.bankid = h.bankid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_contact j ON j.employeeid = a.employeeid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_personalinfo k ON k.employeeid = a.employeeid ")
-				.append("WHERE a.employeesequenceno = ? AND a.status = 1001");
+	    StringBuilder query = new StringBuilder();
+	    query.append("SELECT ")
+	         .append("a.employeesequenceno AS EmpCode, ")
+	         .append("a.callname AS Fullname, ")
+	         .append("a.employeeid, ")
+	         .append("b.designationid, ")
+	         .append("e.name AS DESIGNATION, ")
+	         .append("b.departmentid, ")
+	         .append("d.name AS DEPT, ")
+	         .append("a.companyid AS Divisionid, ")
+	         .append("f.name AS DIVISION, ")
+	         .append("g.employmenttypeid, ")
+	         .append("h.BANKIFC, ")
+	         .append("h.BANKACC, ")
+	         .append("i.bankName, ")
+	         .append("j.email, ")
+	         .append("j.mobile, ")
+	         .append("k.AADHAARCARDNO, ")
+	         .append("IFNULL(pc.COMMUNICATIONADDRESS,'') AS COMMUNICATIONADDRESS, ")
+	         .append("IFNULL(pc.PERMANENTADDRESS,'') AS PERMANENTADDRESS, ")
+	         .append("IFNULL(pcity.NAME,'') AS PCITY, ")
+	         .append("IFNULL(pstate.NAME,'') AS PSTATE, ")
+	         .append("IFNULL(rloc.NAME,'') AS REGION_LOCATION, ")
+	         .append("IFNULL(hqloc.NAME,'') AS HQ_LOCATION ")
+	         .append("FROM hclhrm_prod.tbl_employee_primary a ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employee_profile_businessunit c ON c.employeeid = b.employeeid ")
+	         .append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = b.departmentid ")
+	         .append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = b.designationid ")
+	         .append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = a.companyid ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employment_types g ON g.employmenttypeid = a.employmenttypeid ")
+	         .append("LEFT JOIN hclhrm_prod_others.tbl_emp_bank_ifc h ON h.empid = b.employeeid ")
+	         .append("LEFT JOIN hcladm_prod.tbl_bank_details i ON i.bankid = h.bankid ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employee_professional_contact j ON j.employeeid = a.employeeid ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employee_personalinfo k ON k.employeeid = a.employeeid ")
+	         .append("LEFT JOIN hclhrm_prod.tbl_employee_personal_contact pc ON a.employeeid = pc.employeeid ")
+	         .append("LEFT JOIN hcllcm_prod.tbl_location rloc ON b.sublocationid = rloc.locationid ")
+	         .append("LEFT JOIN hcllcm_prod.tbl_location hqloc ON b.worklocationid = hqloc.locationid ")
+	         .append("LEFT JOIN hcllcm_prod.tbl_location pcity ON pc.permanentlocationid = pcity.locationid ")
+	         .append("LEFT JOIN hcllcm_prod.tbl_location pstate ON pcity.parent = pstate.locationid ")
+	         .append("WHERE a.employeesequenceno = ? AND a.status = 1001");
 
-		List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
+	    List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
 
-		if (result.isEmpty()) {
-			throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
-		}
+	    if (result.isEmpty()) {
+	        throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
+	    }
 
-		return result;
+	    return result;
 	}
 
 	public List<Master> getHodName(String name) {
@@ -238,43 +268,7 @@ public class TourServiceImpl {
 			return dependentName;
 		}, "%" + name + "%", "%" + name + "%");
 	}
-//
-//	public Map<String, Object> getTourEmployees(int page, int size, String searchTerm,int loginid) {
-//		int offset = page * size;
-//
-//		String baseSql = "FROM touradvance.tbl_employee_tour_advance WHERE status = 1001";
-//		List<Object> params = new ArrayList<>();
-//
-//		if (searchTerm != null && !searchTerm.trim().isEmpty()) {
-//			baseSql += " AND (employeeid LIKE ? OR employee_name LIKE ?)";
-//			String likePattern = "%" + searchTerm.trim() + "%";
-//			params.add(likePattern);
-//			params.add(likePattern);
-//		}
-//
-//		String dataSql = "SELECT tour_id, employeeid, employee_name, Requested_amount " + baseSql
-//				+ " ORDER BY createdDate DESC LIMIT ? OFFSET ?";
-//		params.add(size);
-//		params.add(offset);
-//
-//		List<Map<String, Object>> content = jdbcTemplate.queryForList(dataSql, params.toArray());
-//		String countSql = "SELECT COUNT(*) " + baseSql;
-//		List<Object> countParams = new ArrayList<>(params);
-//		if (countParams.size() >= 2) {
-//			countParams = countParams.subList(0, countParams.size() - 2);
-//		}
-//
-//		int total = jdbcTemplate.queryForObject(countSql, countParams.toArray(), Integer.class);
-//
-//		Map<String, Object> result = new HashMap<>();
-//		result.put("content", content);
-//		result.put("page", page);
-//		result.put("size", size);
-//		result.put("totalElements", total);
-//		result.put("totalPages", (int) Math.ceil((double) total / size));
-//
-//		return result;
-//	}
+
 	public Map<String, Object> getTourEmployees(int page, int size, String searchTerm, int loginid) {
 	    int offset = page * size;
 
@@ -323,14 +317,12 @@ public class TourServiceImpl {
 				String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
 				String fileNameGen = "utilization_" + dto.getTourId() + "_" + System.currentTimeMillis()
 						+ fileExtension;
-				Path filePath = Paths.get(utilizationUploadPath, fileNameGen);
-
-				// Ensure directory exists using mkdirs()
-				File uploadDir = new File(utilizationUploadPath);
+				Path filePath = Paths.get(receiptUploadPath, fileNameGen);
+				File uploadDir = new File(receiptUploadPath);
 				if (!uploadDir.exists()) {
 					boolean dirCreated = uploadDir.mkdirs();
 					if (!dirCreated) {
-						throw new IOException("Failed to create directory: " + utilizationUploadPath);
+						throw new IOException("Failed to create directory: " + receiptUploadPath);
 					}
 				}
 
@@ -502,7 +494,7 @@ public class TourServiceImpl {
 //		response.put("refundCount", adjustmentCounts.get("refundCount"));
 //		response.put("settledCount", adjustmentCounts.get("settledCount"));
 //
-//		return response; 
+//		return response;
 //	}
 	public Map<String, Object> getFinalSettlementEmployees(int page, int size, String search, int loginid) {
 	    int offset = page * size;
@@ -510,7 +502,7 @@ public class TourServiceImpl {
 	    String baseSql = "FROM touradvance.tbl_employee_tour_advance a "
 	            + "LEFT JOIN touradvance.tbl_master_tour_type b ON b.id = a.tour_type "
 	            + "LEFT JOIN touradvance.tbl_tour_advance_settlement c ON c.tour_id = a.tour_id "
-	            + "WHERE a.status = 1002 AND c.uploadedBy = ? ";
+	            + "WHERE a.status = 1002 AND c.UploadedBy = ? ";
 
 	    StringBuilder whereClause = new StringBuilder();
 	    List<Object> params = new ArrayList<>();
@@ -645,26 +637,6 @@ public class TourServiceImpl {
 		file.transferTo(dest);
 		return filePath;
 	}
-//
-//	public List<Map<String, Object>> getConveyanceBillEmployees(int loginid) {
-//	
-//		StringBuffer sql = new StringBuffer();
-//		sql.append("SELECT ").append("a.conveyance_id, ").append("a.employee_id, ").append("a.name, ")
-//				.append("a.bill_amount, ").append("a.bill_submitted_date, ").append("d.name AS department, ")
-//				.append("e.name AS designation, ").append("f.name AS division, ").append("h.mode_name AS amount_mode, ")
-//				.append("i.name AS bill_status, ").append("a.amount_transfer_type as transferType ")
-//				.append("FROM touradvance.tbl_employee_conveyance_bill a ")
-//				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary b ON a.employee_id = b.employeesequenceno ")
-//				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details c ON c.employeeid = b.employeeid ")
-//				.append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = c.departmentid ")
-//				.append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = c.designationid ")
-//				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = b.companyid ")
-//				.append("LEFT JOIN touradvance.tbl_master_amount_mode h ON h.id = a.amount_transfer_type ")
-////				.append("LEFT JOIN touradvance.bill_status i ON i.id = a.prev_bill_status where ORDER BY a.created_date DESC");
-//				.append(" LEFT JOIN touradvance.bill_status i ON i.id = a.prev_bill_status ")
-//				.append(" ORDER BY a.created_date DESC");
-//		return jdbcTemplate.queryForList(sql.toString());
-//	}
 
 	public List<Map<String, Object>> getConveyanceBillEmployees(int loginid) {
 
@@ -696,66 +668,72 @@ public class TourServiceImpl {
 	}
 
 	public Map<String, Object> getConveyanceFilesById(int id) {
-		String sql = "SELECT conveyance_bill_path, conveyance_cheque_path FROM touradvance.tbl_employee_conveyance_bill WHERE conveyance_id = ?";
-		try {
-			return jdbcTemplate.queryForObject(sql, new Object[] { id }, (rs, rowNum) -> {
-				Map<String, Object> filesMap = new HashMap<>();
-				try {
-					String billPath = rs.getString("conveyance_bill_path");
-					filesMap.put("bill",
-							billPath != null && !billPath.isEmpty() && Files.exists(Paths.get(billPath))
-									? Files.readAllBytes(Paths.get(billPath))
-									: null);
-					String chequePath = rs.getString("conveyance_cheque_path");
-					filesMap.put("cheque",
-							chequePath != null && !chequePath.isEmpty() && Files.exists(Paths.get(chequePath))
-									? Files.readAllBytes(Paths.get(chequePath))
-									: null);
+	    String sql = "SELECT conveyance_bill_path, conveyance_cheque_path " +
+	                 "FROM touradvance.tbl_employee_conveyance_bill " +
+	                 "WHERE conveyance_id = ?";
 
-				} catch (IOException e) {
-
-					filesMap.put("bill", null);
-					filesMap.put("cheque", null);
-				}
-				return filesMap;
-			});
-		} catch (Exception e) {
-
-			return new HashMap<>();
-		}
-	}
-
-	public Map<String, Object> getTourById(int tourid) {
-	    String sql = "SELECT a.advance_bill_file, c.receipt_file " +
-	                 "FROM touradvance.tbl_employee_tour_advance a " +
-	                 "LEFT JOIN touradvance.tbl_master_tour_type b ON b.id = a.tour_type " +
-	                 "LEFT JOIN touradvance.tbl_tour_advance_settlement c ON c.tour_id = a.tour_id " +
-	                 "WHERE a.tour_id = ?";
-
+	    Map<String, Object> filesMap = new HashMap<>();
 	    try {
-	        return jdbcTemplate.queryForObject(sql, new Object[]{tourid}, (rs, rowNum) -> {
-	            Map<String, Object> filesMap = new HashMap<>();
-	            String billPath = rs.getString("advance_bill_file");
-	            try {
-	                filesMap.put("advancebill",
-	                        (billPath != null && !billPath.isEmpty()) ? Files.readAllBytes(Paths.get(billPath)) : null);
-	            } catch (IOException ignored) {
-	                filesMap.put("advancebill", null);
-	            }
-	            String receiptPath = rs.getString("receipt_file");
-	            try {
-	                filesMap.put("receipt",
-	                        (receiptPath != null && !receiptPath.isEmpty()) ? Files.readAllBytes(Paths.get(receiptPath)) : null);
-	            } catch (IOException ignored) {
-	                filesMap.put("receipt", null);
-	            }
+	        jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
+	            String billPath = rs.getString("conveyance_bill_path");
+	            String chequePath = rs.getString("conveyance_cheque_path");
+	            filesMap.put("bill", getBase64File(billPath,billUploadPath));
+	            filesMap.put("cheque", getBase64File(chequePath, chequeUploadPath));
 
 	            return filesMap;
 	        });
 	    } catch (Exception e) {
-	        return new HashMap<>();
+	        System.err.println("Error fetching conveyance files: " + e.getMessage());
+	        filesMap.put("bill", null);
+	        filesMap.put("cheque", null);
 	    }
+
+	    return filesMap;
 	}
 
+	  public Map<String, Object> getTourFilesBase64(int tourId) {
 
+	        String sql = "SELECT a.advance_bill_file, c.receipt_file " +
+	                     "FROM touradvance.tbl_employee_tour_advance a " +
+	                     "LEFT JOIN touradvance.tbl_tour_advance_settlement c ON c.tour_id = a.tour_id " +
+	                     "WHERE a.tour_id = ?";
+
+	        return jdbcTemplate.queryForObject(sql, new Object[]{tourId}, (rs, rowNum) -> {
+	            Map<String, Object> filesMap = new HashMap<>();
+	            String advanceBillFileName = rs.getString("advance_bill_file");
+	            filesMap.put("advancebill", getBase64File(advanceBillFileName, advanceBillUploadPath));
+	            String receiptFileName = rs.getString("receipt_file");
+	            filesMap.put("receipt", getBase64File(receiptFileName, receiptUploadPath));
+
+	            return filesMap;
+	        });
+	    }
+	    private String getBase64File(String fileName, String folderPath) {
+	        if (fileName == null || fileName.isEmpty()) return null;
+
+	        Path path = Paths.get(fileName);
+	        if (!path.isAbsolute()) {
+	            path = Paths.get(folderPath, fileName);
+	        }
+
+	        if (!Files.exists(path) || !Files.isReadable(path)) {
+	            System.err.println("File not found or not readable: " + path);
+	            return null;
+	        }
+
+	        try (InputStream in = Files.newInputStream(path);
+	             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+	            byte[] buffer = new byte[8192]; 
+	            int bytesRead;
+	            while ((bytesRead = in.read(buffer)) != -1) {
+	                out.write(buffer, 0, bytesRead);
+	            }
+
+	            return Base64.getEncoder().encodeToString(out.toByteArray());
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	            return null;
+	        }
+	    }
 }
