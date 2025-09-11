@@ -52,17 +52,29 @@ public class InsuranceFilesController {
 		return ResponseEntity.ok(insuranceFilesService.getUserManuals());
 	}
 
-	@GetMapping("/forms")
-	@Cacheable("forms")
-	public ResponseEntity<List<HrFormDTO>> getHrForms() {
-		return ResponseEntity.ok(insuranceFilesService.getHrForms());
+	@GetMapping("/forms/{buId}")
+	// @Cacheable("forms")
+	public ResponseEntity<List<HrFormDTO>> getHrForms(@PathVariable int buId) {
+		return ResponseEntity.ok(insuranceFilesService.getHrForms(buId));
+	}
+
+	@GetMapping("/buforms")
+	// @Cacheable("forms")
+	public ResponseEntity<List<HrFormDTO>> getMasterHrForms() {
+		return ResponseEntity.ok(insuranceFilesService.getMasterHrForms());
+	}
+
+	@GetMapping("/hrsopforms")
+	@Cacheable("hrsopforms")
+	public ResponseEntity<List<HrFormDTO>> getSOPForms() {
+		return ResponseEntity.ok(insuranceFilesService.getSOPForms());
 	}
 
 	// Family Insurance
 	/*
 	 * @GetMapping("/familyinsuranceflag") public ResponseEntity<Boolean> getDates()
 	 * { return ResponseEntity.ok(insuranceFilesService.getDates()); }
-	 */  
+	 */
 
 	@GetMapping("insurancedata/{empId}")
 	public ResponseEntity<EmployeeBasicDetailsDTO> getEmployeeDetails(@PathVariable int empId) {
@@ -79,9 +91,10 @@ public class InsuranceFilesController {
 		return ResponseEntity.ok(insuranceFilesService.deleteFamilyMember(familyMemberId, empId));
 	}
 
-	@PostMapping("intrestflag/{familyMemberId}/{flag}")
-	public ResponseEntity<ApiResponse> getIntrestFlag(@PathVariable int familyMemberId, @PathVariable int flag) {
-		return ResponseEntity.ok(insuranceFilesService.getIntrestFlag(familyMemberId, flag));
+	@PostMapping("intrestflag/{familyMemberId}/{flag}/{empId}")
+	public ResponseEntity<ApiResponse> getIntrestFlag(@PathVariable int familyMemberId, @PathVariable int flag,
+			@PathVariable int empId) {
+		return ResponseEntity.ok(insuranceFilesService.getIntrestFlag(familyMemberId, flag, empId));
 	}
 
 	@PostMapping("/uploadfamilymembers")

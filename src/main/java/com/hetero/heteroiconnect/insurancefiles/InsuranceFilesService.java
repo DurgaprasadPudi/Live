@@ -17,7 +17,11 @@ public interface InsuranceFilesService {
 
 	Map<String, byte[]> getUserManuals();
 
-	List<HrFormDTO> getHrForms();
+	List<HrFormDTO> getHrForms(int buId);
+
+	List<HrFormDTO> getMasterHrForms();
+
+	List<HrFormDTO> getSOPForms();
 
 	// Boolean getDates();
 
@@ -27,7 +31,7 @@ public interface InsuranceFilesService {
 
 	ApiResponse deleteFamilyMember(int familyMemberId, int empId);
 
-	ApiResponse getIntrestFlag(int familyMemberId, int flag);
+	ApiResponse getIntrestFlag(int familyMemberId, int flag, int empId);
 
 	ApiResponse saveFamilyMembers(UploadFamilyMembersDetails uploadDetails);
 
