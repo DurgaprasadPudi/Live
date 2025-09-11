@@ -1127,6 +1127,29 @@ for (Object[] temp : Holidaylist_Obj) {
 	 	        
 	 	        return result;
 	 	    }
-	 	  
+	 	   @PostMapping("validateLogin")
+	 	  public LinkedHashMap<String, Object> validateLogin(@RequestBody String login) throws JSONException {
+	 	      LinkedHashMap<String, Object> response = new LinkedHashMap<>();
+	 	      JSONObject object = new JSONObject(login);
+
+	 	      String empCode = object.getString("empID");
+	 	      String password = object.getString("password");
+
+	 	      // repository returns int
+	 	      int result = mstUserRepository.validateLogin(empCode, password);
+	 	      boolean isValid = result > 0;
+
+	 	      if (isValid) {
+	 	          response.put("status", "success");
+	 	          response.put("message", "Login successful");
+	 	      } else {
+	 	          response.put("status", "failure");
+	 	          response.put("message", "Invalid credentials");
+	 	      }
+
+	 	      return response;
+	 	  }
+
+
  
 }

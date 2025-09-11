@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.IntStream;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -225,90 +223,7 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	
  
 
-	public Page<CourierSenderTrackingDTO> findByAllFields(String search, int page, int size) {
-	    int offset = page * size;
-
-	    // Base select with joins (same as your query but add LIMIT/OFFSET)
-	    String baseSql = "SELECT a.sender_tracking_id, a.register_date, a.courier_type_id, b.courier_name, a.docket_no, " +
-	        "a.tracking_status_id, ep.callname, d.name, a.sender_name AS senderId,a.sender_contact_no, a.receiver_name, a.receiver_contact_no, " +
-	        "a.from_location, a.to_location, a.material, a.comment " +
-	        "FROM courier_tracking.tbl_courier_sender_tracking a " +
-	        "LEFT JOIN courier_tracking.tbl_master_courier_types b ON a.courier_type_id = b.courier_type_id " +
-	        "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.sender_name " +
-	        "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
-	        "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-	        "WHERE a.status = 1001 " +
-	        (search != null && !search.isEmpty() ?
-	          "AND (a.docket_no LIKE :search OR ep.callname LIKE :search OR d.name LIKE :search OR a.sender_contact_no LIKE :search " +
-	          "OR a.receiver_name LIKE :search OR a.receiver_contact_no LIKE :search OR a.from_location LIKE :search OR a.to_location LIKE :search " +
-	          "OR a.material LIKE :search OR b.courier_name LIKE :search OR a.tracking_status_id LIKE :search OR a.register_date LIKE :search) " : "") +
-	        "ORDER BY a.register_date DESC " +
-	        "LIMIT :limit OFFSET :offset";
-
-	    // Count query with same conditions
-	    String countSql = "SELECT COUNT(*) FROM courier_tracking.tbl_courier_sender_tracking a " +
-	        "LEFT JOIN courier_tracking.tbl_master_courier_types b ON a.courier_type_id = b.courier_type_id " +
-	        "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.sender_name " +
-	        "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
-	        "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-	        "WHERE a.status = 1001 " +
-	        (search != null && !search.isEmpty() ?
-	          "AND (a.docket_no LIKE :search OR ep.callname LIKE :search OR d.name LIKE :search OR a.sender_contact_no LIKE :search " +
-	          "OR a.receiver_name LIKE :search OR a.receiver_contact_no LIKE :search OR a.from_location LIKE :search OR a.to_location LIKE :search " +
-	          "OR a.material LIKE :search OR b.courier_name LIKE :search OR a.tracking_status_id LIKE :search OR a.register_date LIKE :search) " : "");
-
-	    Query countQuery = entityManager.createNativeQuery(countSql);
-	    Query dataQuery = entityManager.createNativeQuery(baseSql);
-
-	    if (search != null && !search.isEmpty()) {
-	        String searchPattern = "%" + search + "%";
-	        countQuery.setParameter("search", searchPattern);
-	        dataQuery.setParameter("search", searchPattern);
-	    }
-
-	    dataQuery.setParameter("limit", size);
-	    dataQuery.setParameter("offset", offset);
-
-	    // Get total count
-	    Number totalCount = (Number) countQuery.getSingleResult();
-
-	    // Fetch result list
-	    @SuppressWarnings("unchecked")
-	    List<Object[]> results = dataQuery.getResultList();
-
-	    // Map to DTO
-	    List<CourierSenderTrackingDTO> dtoList = new ArrayList<>();
-	    for (Object[] row : results) {
-	        CourierSenderTrackingDTO dto = new CourierSenderTrackingDTO();
-	        dto.setSenderTrackingId(((Number) row[0]).intValue());
-	        dto.setRegisterDate((Date) row[1]);
-	        dto.setCourierTypeId(((Number) row[2]).intValue());
-	        dto.setCourierName((String) row[3]);
-	        dto.setDocketNo((String) row[4]);
-	        dto.setTrackingStatusId(row[5] != null ? ((Number) row[5]).intValue() : null);
-	        dto.setSenderName((String) row[6]);
-	        dto.setDept((String) row[7]);
-
-	        // ✅ senderId is at position 8
-	        dto.setSenderId((String) row[8]);
-
-	        dto.setSenderContactNo((String) row[9]);
-	        dto.setReceiverName((String) row[10]);
-	        dto.setReceiverContactNo((String) row[11]);
-	        dto.setFromLocation((String) row[12]);
-	        dto.setToLocation((String) row[13]);
-	        dto.setMaterial((String) row[14]);
-	        dto.setComment((String) row[15]);
-
-	        dtoList.add(dto);
-	    }
-
-
-	    Pageable pageable = new PageRequest(page, size, new Sort(Sort.Direction.DESC, "registerDate"));
-	    return new PageImpl<>(dtoList, pageable, totalCount.longValue());
-	}
-
-
+	 
  
 //	@Override
 //	public Page<CourierReceiverTrackingDTO> getReceiverTrackingList(String search, int page, int size) {
@@ -338,9 +253,9 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 
   
 
-	public Page<CourierReceiverTrackingDTO> getReceiverTrackingList(String search, int page, int size) {
+	public Page<CourierReceiverTrackingDTO> getReceiverTrackingList(String search, int page, int size,int loginid) {
 	    int offset = page * size;
-
+ 
 	    String baseSql = "SELECT a.receiver_tracking_id, a.received_date, a.receiver_name, ep.callname, d.name, " +
 	        "a.receiver_contact_no, a.receiver_location, a.docket_no, a.sender_details, a.material_received, a.comment, " +
 	        "a.created_by, a.updated_by, a.courier_type_id, ct.courier_name " +
@@ -349,8 +264,8 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	        "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.receiver_name " +
 	        "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
 	        "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-	        "WHERE a.status = 1001 ";
-
+	        "WHERE a.status = 1001 AND a.created_by = :loginid ";
+ 
 	    String searchCondition = "";
 	    if (search != null && !search.trim().isEmpty()) {
 	        searchCondition = "AND (" +
@@ -358,35 +273,36 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	            "a.docket_no LIKE :search OR a.sender_details LIKE :search OR a.material_received LIKE :search OR a.comment LIKE :search OR " +
 	            "ct.courier_name LIKE :search OR CAST(a.received_date AS CHAR) LIKE :search) ";
 	    }
-
+ 
 	    String orderLimit = "ORDER BY a.received_date DESC LIMIT :limit OFFSET :offset";
-
+ 
 	    String finalSql = baseSql + searchCondition + orderLimit;
-
+ 
 	    String countSql = "SELECT COUNT(*) FROM courier_tracking.tbl_courier_receiver_tracking a " +
 	        "LEFT JOIN courier_tracking.tbl_master_courier_types ct ON a.courier_type_id = ct.courier_type_id " +
 	        "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.receiver_name " +
 	        "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
 	        "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-	        "WHERE a.status = 1001 " + searchCondition;
-
+	        "WHERE  a.status = 1001 AND a.created_by = :loginid " + searchCondition;
+ 
 	    Query countQuery = entityManager.createNativeQuery(countSql);
 	    Query dataQuery = entityManager.createNativeQuery(finalSql);
-
+	    countQuery.setParameter("loginid", loginid);
+        dataQuery.setParameter("loginid", loginid);
 	    if (!searchCondition.isEmpty()) {
 	        String searchPattern = "%" + search.trim() + "%";
 	        countQuery.setParameter("search", searchPattern);
 	        dataQuery.setParameter("search", searchPattern);
 	    }
-
+ 
 	    dataQuery.setParameter("limit", size);
 	    dataQuery.setParameter("offset", offset);
-
+ 
 	    Number total = (Number) countQuery.getSingleResult();
-
+ 
 	    @SuppressWarnings("unchecked")
 	    List<Object[]> results = dataQuery.getResultList();
-
+ 
 	    List<CourierReceiverTrackingDTO> dtos = new ArrayList<>();
 	    for (Object[] row : results) {
 	        CourierReceiverTrackingDTO dto = new CourierReceiverTrackingDTO();
@@ -407,10 +323,91 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	        dto.setCourierName((String) row[14]);
 	        dtos.add(dto);
 	    }
-
+ 
 	    Pageable pageable = new PageRequest(page, size, new Sort(Sort.Direction.DESC, "receivedDate"));
 	    return new PageImpl<>(dtos, pageable, total.longValue());
 	}
+	
+	
+	
+	 public Page<CourierSenderTrackingDTO> findByAllFields(String search, int page, int size, int loginid) {
+        if (page < 0 || size <= 0) {
+            throw new IllegalArgumentException("Page must be non-negative and size must be positive");
+        }
+ 
+        try {
+            int offset = page * size;
+            String baseSql = "SELECT a.sender_tracking_id, a.register_date, a.courier_type_id, b.courier_name, a.docket_no, " +
+                    "a.tracking_status_id, ep.callname, d.name, a.sender_name AS senderId, a.sender_contact_no, " +
+                    "a.receiver_name, a.receiver_contact_no, a.from_location, a.to_location, a.material, a.comment " +
+                    "FROM courier_tracking.tbl_courier_sender_tracking a " +
+                    "LEFT JOIN courier_tracking.tbl_master_courier_types b ON a.courier_type_id = b.courier_type_id " +
+                    "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.sender_name " +
+                    "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
+                    "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
+                    "WHERE a.status = 1001 AND a.created_by = :loginid " +
+                    (search != null && !search.isEmpty() ? 
+                        "AND (a.docket_no LIKE :search OR ep.callname LIKE :search OR d.name LIKE :search " +
+                        "OR a.sender_contact_no LIKE :search OR a.receiver_name LIKE :search " +
+                        "OR a.receiver_contact_no LIKE :search OR a.from_location LIKE :search " +
+                        "OR a.to_location LIKE :search OR a.material LIKE :search OR b.courier_name LIKE :search " +
+                        "OR a.tracking_status_id LIKE :search) " : "") +
+                    "ORDER BY a.register_date DESC LIMIT :limit OFFSET :offset";
+ 
+            String countSql = "SELECT COUNT(*) FROM courier_tracking.tbl_courier_sender_tracking a " +
+                    "LEFT JOIN courier_tracking.tbl_master_courier_types b ON a.courier_type_id = b.courier_type_id " +
+                    "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.sender_name " +
+                    "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
+                    "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
+                    "WHERE a.status = 1001 AND a.created_by = :loginid " +
+                    (search != null && !search.isEmpty() ? 
+                        "AND (a.docket_no LIKE :search OR ep.callname LIKE :search OR d.name LIKE :search " +
+                        "OR a.sender_contact_no LIKE :search OR a.receiver_name LIKE :search " +
+                        "OR a.receiver_contact_no LIKE :search OR a.from_location LIKE :search " +
+                        "OR a.to_location LIKE :search OR a.material LIKE :search OR b.courier_name LIKE :search " +
+                        "OR a.tracking_status_id LIKE :search) " : "");
+ 
+            Query countQuery = entityManager.createNativeQuery(countSql);
+            Query dataQuery = entityManager.createNativeQuery(baseSql);
+            countQuery.setParameter("loginid", loginid);
+            dataQuery.setParameter("loginid", loginid);
+            if (search != null && !search.isEmpty()) {
+                String searchPattern = "%" + search + "%";
+                countQuery.setParameter("search", searchPattern);
+                dataQuery.setParameter("search", searchPattern);
+            }
+            dataQuery.setParameter("limit", size);
+            dataQuery.setParameter("offset", offset);
+            Number totalCount = (Number) countQuery.getSingleResult();
+            @SuppressWarnings("unchecked")
+            List<Object[]> results = dataQuery.getResultList();
+            List<CourierSenderTrackingDTO> dtoList = new ArrayList<>();
+            for (Object[] row : results) {
+                CourierSenderTrackingDTO dto = new CourierSenderTrackingDTO();
+                dto.setSenderTrackingId(row[0] != null ? ((Number) row[0]).intValue() : null);
+                dto.setRegisterDate(row[1] != null ? (Date) row[1] : null);
+                dto.setCourierTypeId(row[2] != null ? ((Number) row[2]).intValue() : null);
+                dto.setCourierName((String) row[3]);
+                dto.setDocketNo((String) row[4]);
+                dto.setTrackingStatusId(row[5] != null ? ((Number) row[5]).intValue() : null);
+                dto.setSenderName((String) row[6]);
+                dto.setDept((String) row[7]);
+                dto.setSenderId((String) row[8]);
+                dto.setSenderContactNo((String) row[9]);
+                dto.setReceiverName((String) row[10]);
+                dto.setReceiverContactNo((String) row[11]);
+                dto.setFromLocation((String) row[12]);
+                dto.setToLocation((String) row[13]);
+                dto.setMaterial((String) row[14]);
+                dto.setComment((String) row[15]);
+                dtoList.add(dto);
+            }
+            Pageable pageable = new PageRequest(page, size, new Sort(Sort.Direction.DESC, "registerDate"));
+            return new PageImpl<CourierSenderTrackingDTO>(dtoList, pageable, totalCount != null ? totalCount.longValue() : 0);
+        } catch (Exception e) {
+            throw new RuntimeException("Error fetching courier tracking data: " + e.getMessage(), e);
+        }
+    }
 
 
 //	@Override
@@ -434,8 +431,8 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 	}
 
 	@Override
-	public synchronized byte[] courierTrackingService() {
-	    List<Object[]> data = courierTrackingRepository.findAllSenderDataForExport();
+	public synchronized byte[] courierTrackingService(int loginid) {
+	    List<Object[]> data = courierTrackingRepository.findAllSenderDataForExport(loginid);
 
 	    if (data == null || data.isEmpty()) {
 	        throw new EmptyDataNotFoundException("No sender tracking data found.");
@@ -583,9 +580,8 @@ public class CourierTrackingServiceImpl implements CourierTrackingService {
 //	    }
 //	}
 	
-	@Override
-	public synchronized byte[] receiverTrackingReport() {
-	    List<Object[]> data = courierTrackingRepository.findAllReceiverDataForExport();
+	public synchronized byte[] receiverTrackingReport(int loginid) {
+	    List<Object[]> data = courierTrackingRepository.findAllReceiverDataForExport(loginid);
 
 	    if (data == null || data.isEmpty()) {
 	        throw new EmptyDataNotFoundException("No Receiver tracking data found.");

@@ -119,6 +119,13 @@ public class LoginUser implements Serializable {
 	}
 
 
+	
+	
+	@JsonInclude(NON_NULL)
+    @Column(name = "iconnectpassword")
+    private String iconnectpassword;
+	
+	
 	@JsonInclude(NON_NULL)
     @Column(name = "PWD")
     private String PWD;
@@ -336,6 +343,14 @@ public class LoginUser implements Serializable {
 
 	public void setNAME(String nAME) {
 		NAME = nAME;
+	}
+
+	public String getIconnectpassword() {
+		return iconnectpassword;
+	}
+
+	public void setIconnectpassword(String iconnectpassword) {
+		this.iconnectpassword = iconnectpassword;
 	}
 
 	public String getPWD() {

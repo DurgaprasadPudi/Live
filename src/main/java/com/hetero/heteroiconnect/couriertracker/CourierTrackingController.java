@@ -57,36 +57,55 @@ public class CourierTrackingController {
 		return ResponseEntity.ok(courierTrackingService.editReceiverRegistration(dto));
 	}
 
-	@GetMapping(value="/sendertracking",produces = "application/json")
-	public ResponseEntity<Object> getSenderTrackingList(@RequestParam(defaultValue = "") String search,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
-		return new ResponseEntity<>(courierTrackingService.findByAllFields(search, page, size), HttpStatus.OK);
+//	@GetMapping(value="/sendertracking",produces = "application/json")
+//	public ResponseEntity<Object> getSenderTrackingList(@RequestParam(defaultValue = "") String search,
+//			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+//		return new ResponseEntity<>(courierTrackingService.findByAllFields(search, page, size), HttpStatus.OK);
+//	}
+	
+	
+	
+	
+	@PostMapping(value="/sendertracking", produces = "application/json")
+	public ResponseEntity<Object> getSenderTrackingList(
+	        @RequestParam(defaultValue = "") String search,
+	        @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size,
+	        @RequestParam int loginid) {
+	    return new ResponseEntity<>(courierTrackingService.findByAllFields(search, page, size, loginid), HttpStatus.OK);
 	}
-	@GetMapping(value="/receivertracking",produces = "application/json")
+//	
+//	@GetMapping(value="/receivertracking",produces = "application/json")
+//	public ResponseEntity<Object> getReceiverTrackingList(
+//	        @RequestParam(defaultValue = "") String search,
+//	        @RequestParam(defaultValue = "0") int page,
+//	        @RequestParam(defaultValue = "10") int size) {
+//	    return ResponseEntity.ok( courierTrackingService.getReceiverTrackingList(search, page, size));
+//	}
+	@PostMapping(value="/receivertracking",produces = "application/json")
 	public ResponseEntity<Object> getReceiverTrackingList(
 	        @RequestParam(defaultValue = "") String search,
 	        @RequestParam(defaultValue = "0") int page,
-	        @RequestParam(defaultValue = "10") int size) {
-	    return ResponseEntity.ok( courierTrackingService.getReceiverTrackingList(search, page, size));
+	        @RequestParam(defaultValue = "10") int size, @RequestParam int loginid) {
+	    return new ResponseEntity<>(courierTrackingService.getReceiverTrackingList(search, page, size,loginid), HttpStatus.OK);
 	}
-	
 	@PostMapping(value = "/search", produces = "application/json")
 	public  ResponseEntity<?> getSearch(@RequestParam String name) {
 	    return ResponseEntity.ok(courierTrackingService.getSearch(name));
 	}
 	
-	@GetMapping(value = "/sendertracking/report", produces = "application/json")
-	public ResponseEntity<byte[]> senderTrackingReport() throws SQLException, IOException {
-		byte[] excelData = courierTrackingService.courierTrackingService();
+	@PostMapping(value = "/sendertracking/report", produces = "application/json")
+	public ResponseEntity<byte[]> senderTrackingReport(@RequestParam int loginid) throws SQLException, IOException {
+		byte[] excelData = courierTrackingService.courierTrackingService(loginid);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 		headers.setContentDispositionFormData("attachment", "courierTrackingSendingReport.xlsx");
 		return new ResponseEntity<>(excelData, headers, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/receivertracking/report", produces = "application/json")
-	public ResponseEntity<byte[]> receiverTrackingReport() throws SQLException, IOException {
-		byte[] excelData = courierTrackingService.receiverTrackingReport();
+	@PostMapping(value = "/receivertracking/report", produces = "application/json")
+	public ResponseEntity<byte[]> receiverTrackingReport(@RequestParam int loginid) throws SQLException, IOException {
+		byte[] excelData = courierTrackingService.receiverTrackingReport(loginid);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 		headers.setContentDispositionFormData("attachment", "receiverTrackingSendingReport.xlsx");

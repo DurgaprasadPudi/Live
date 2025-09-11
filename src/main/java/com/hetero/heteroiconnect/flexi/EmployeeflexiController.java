@@ -219,12 +219,12 @@ public class EmployeeflexiController {
  		 		
 	 		  File file = null;
 	           
-		 		  boolean flag=false;
+		 		  boolean flag=false;  
 		 		  
 		 		  //String Parentpath="BSTPAYSLIP";
 		 		
 		 		try {
-		 			String EMPINFO="SELECT COUNT(*) COUNT FROM  hclhrm_prod.tbl_employee_login where EMPLOYEECODE='"+emp+"' and CONCAT(MD5('"+emp+"'),PASSWORD)='"+pwd+"';" ;
+		 			String EMPINFO="SELECT COUNT(*) COUNT FROM  hclhrm_prod.tbl_employee_login where EMPLOYEECODE='"+emp+"' and  EMPLOYEECODE!=30546 and CONCAT(MD5('"+emp+"'),PASSWORD)='"+pwd+"';" ;
 					 List<Map<String, Object>>  rows = jdbcTemplate.queryForList(EMPINFO.toString());
 					// STATUS, DISPLAYNAME, HRMSEMPLOYEEID, EmpCode, Fullname, DIVISION, DEPT, DESIGNATION, STATUS, EmploymentType
 					  for (@SuppressWarnings("rawtypes") Map row : rows) {

@@ -20,17 +20,17 @@ public interface CourierTrackingService {
 	Object editReceiverRegistration(CourierReceiverTrackingDTO dto);
 
 	//Page<CourierSenderTrackingDTO> findByAllFields(String search, int page, int size);
-	Page<CourierSenderTrackingDTO> findByAllFields(String search, int page, int size);
+	Page<CourierSenderTrackingDTO> findByAllFields(String search, int page, int size,int loginid);
 
 	
-	Page<CourierReceiverTrackingDTO> getReceiverTrackingList(String search, int page, int size);
+	Page<CourierReceiverTrackingDTO> getReceiverTrackingList(String search, int page, int size,int loginid);
 
 
 	Object getSearch(String name);
 
-	byte[] courierTrackingService();
+	byte[] courierTrackingService(int loginid);
 
-	byte[] receiverTrackingReport();
+	byte[] receiverTrackingReport(int loginid);
 
 	Object getByEmpid(int employeeseq);
 	

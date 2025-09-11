@@ -271,7 +271,11 @@ public class Flexirepository {
 			try {
 				//String EMPINFO="SELECT PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01')) YEAR,BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details where employeesequenceno="+Empid+" order by  payperiod desc limit 3" ;
 				
-				String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and pc.STATUS='C' order by  payperiod desc limit 3";
+				// for ravi sir Id disabled
+				//String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and pc.STATUS='C' order by  payperiod desc limit 3";
+				
+				String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and DD.EMPLOYEESEQUENCENO!=30546 and pc.STATUS='C' order by  payperiod desc limit 3";
+				
 				
 				
 				List<Map<String, Object>>  rows = jdbcTemplate.queryForList(EMPINFO.toString());
@@ -397,7 +401,7 @@ public class Flexirepository {
 		                "WHERE A.status IN (1001, 1092, 1401) " +
 		                "AND A.employeeid != 1 " +
 		                "AND B.PAYPERIOD IS NOT NULL " +
-		                "AND A.EMPLOYEESEQUENCENO = ? " +
+		                "AND A.EMPLOYEESEQUENCENO = ?  and A.EMPLOYEESEQUENCENO!=30546 " +
 		                "GROUP BY A.EMPLOYEEID, A.EMPLOYEESEQUENCENO, per.PAN " +
 		                "ORDER BY FIRSTYEAR DESC, SECONDYEAR DESC, THIRDYEAR DESC";
 

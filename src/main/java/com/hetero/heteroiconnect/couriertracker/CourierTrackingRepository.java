@@ -167,8 +167,8 @@ public interface CourierTrackingRepository extends JpaRepository<DummyEntity, In
             "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.sender_name " +
             "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
             "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-            "WHERE a.status = 1001", nativeQuery = true)
-List<Object[]> findAllSenderDataForExport();
+            "WHERE a.status = 1001 and a.created_by = :loginid", nativeQuery = true)
+List<Object[]> findAllSenderDataForExport(@Param("loginid") int loginid);
 
 
 @Query(value = "SELECT a.received_date, ep.callname, d.name, a.receiver_contact_no, " +
@@ -178,8 +178,8 @@ List<Object[]> findAllSenderDataForExport();
         "LEFT JOIN hclhrm_prod.tbl_employee_primary ep ON ep.employeesequenceno = a.receiver_name " +
         "LEFT JOIN hclhrm_prod.tbl_employee_professional_details pro ON ep.employeeid = pro.employeeid " +
         "LEFT JOIN hcladm_prod.tbl_department d ON pro.departmentid = d.departmentid " +
-        "WHERE a.status = 1001", nativeQuery = true)
-List<Object[]> findAllReceiverDataForExport();
+        "WHERE a.status = 1001 and a.created_by = :loginid", nativeQuery = true)
+List<Object[]> findAllReceiverDataForExport(@Param("loginid") int loginid);
 
 
 	
