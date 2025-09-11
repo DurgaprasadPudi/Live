@@ -18,12 +18,12 @@ public class CacheConfig {
 //				"assettypes", "domains"));
 //		return cacheManager; 
 //	}
- 
+
 	@Bean
 	public CacheManager cacheManager() {
 		ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
 		cacheManager.setCacheNames(Arrays.asList("workplaces", "taskalignments", "categories", "priorities",
-				"tasktypes", "outcomes", "activities", "plannedadhoc", "usermanual", "gender", "forms"));
+				"tasktypes", "outcomes", "activities", "plannedadhoc", "usermanual", "gender", "forms", "hrsopforms"));
 		return cacheManager;
 	}
 }
