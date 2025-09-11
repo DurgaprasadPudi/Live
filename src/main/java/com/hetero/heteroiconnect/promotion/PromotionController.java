@@ -73,9 +73,9 @@ public class PromotionController {
 	public ResponseEntity<?> update(@PathVariable int transactionid,@RequestBody PromotionRegistation promotionRegistation) {
 		return ResponseEntity.ok(promotionService.update(transactionid,promotionRegistation));
 	}
-	@GetMapping(value = "/delete/{transactionid}", produces = "application/json")
-	public ResponseEntity<?> Delete(@PathVariable int transactionid) {
-		return ResponseEntity.ok(promotionService.delete(transactionid));
+	@PostMapping(value = "/delete/{transactionid}", produces = "application/json")
+	public ResponseEntity<?> Delete(@PathVariable int transactionid,@RequestParam int removedby) {
+		return ResponseEntity.ok(promotionService.delete(transactionid,removedby));
 	}
 	
 	@PostMapping(value = "/reporties",consumes = "multipart/form-data", produces = "application/json")
@@ -143,8 +143,6 @@ public class PromotionController {
 		 try {
 	            org.json.JSONObject object = new org.json.JSONObject(login);
 	            String empID = object.getString("empID");
-
-	            // Call service method to check FILEPATH condition
 	            String View = promotionService.checkconfirmation(empID);
 
 	            response.put("VIEW", View);

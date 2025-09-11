@@ -14,6 +14,7 @@ public class PromotionRegistation {
 	private int reportingid;
 	private Date reportingdate;
 	private int createdby;
+	private int updatedby;
 	public int getEmployeeid() {
 		return employeeid;
 	}
@@ -80,6 +81,12 @@ public class PromotionRegistation {
 	}
 	public void setCreatedby(int createdby) {
 		this.createdby = createdby;
+	}
+	public int getUpdatedby() {
+		return updatedby;
+	}
+	public void setUpdatedby(int updatedby) {
+		this.updatedby = updatedby;
 	}
 
 

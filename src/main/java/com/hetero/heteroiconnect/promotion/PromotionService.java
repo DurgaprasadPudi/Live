@@ -15,9 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeAlreadyFoundException;
 import com.hetero.heteroiconnect.promotion.exception.EmployeeNotFoundException;
 
- 
-
- 
 @Service
 public class PromotionService {
 	@Autowired
@@ -25,59 +22,60 @@ public class PromotionService {
 
 	public List<Map<String, Object>> getEmployees() {
 		StringBuffer query = new StringBuffer();
-		query.append("SELECT ").append("a.employeeid AS empid, ").append("a.employeesequenceno AS employeeid, ")
-				.append("c.transactionid, ").append("a.callname, ").append("f.callname AS location, ")
-				.append("d.name AS typeoftransfer, ").append("d.TRANSFERTYPEID AS transferTypeId, ")
-				.append("e.TRANSFERID AS transferId, ").append("e.transfername, ").append("f.name AS buname, ")
-				.append("f.BUSINESSUNITID AS businessUnitId, ").append("g.name AS deptname, ")
-				.append("g.departmentid AS departmentId, ").append("i.name AS prev_des, ")
-				.append("h.DESIGNATIONID AS designationId, ").append("h.name AS current_designation, ")
-				.append("h.DESIGNATIONID AS promotionTo, ").append("c.transferreddate AS transferredDate, ")
-				.append("c.reportingid, ").append("r.callname AS reportername, ").append("c.reportingdate ,C.flag ")
-				.append("FROM ").append("hclhrm_prod.tbl_employee_primary a ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
-				.append("JOIN hclhrm_prod.tbl_employee_transfers_temp c ON c.employeeid = b.employeeid AND c.transferid = 2 ")
-				.append("LEFT JOIN hclhrm_prod.tbl_transfer_types d ON d.transfertypeid = c.transfertypeid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_transfer_details e ON e.transferid = c.transferid ")
-				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = c.businessunitid ")
-				.append("LEFT JOIN hcladm_prod.tbl_department g ON g.departmentid = c.departmentid ")
-				.append("LEFT JOIN hcladm_prod.tbl_designation h ON h.designationid = c.designationid ")
-				.append("LEFT JOIN hcladm_prod.tbl_designation i ON i.designationid = b.designationid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary r ON r.employeesequenceno = c.reportingid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary rp ON rp.employeeid = c.reportingid ")
-				.append("WHERE ").append("a.status = 1001 and c.status = 1001 order by c.lupdate desc ");
+
+		query.append("SELECT ").append("a.employeeid AS empId, ").append("a.employeesequenceno AS empSequenceNo, ")
+				.append("a.callname AS employeeName, ").append("b.transactionId, ").append("i.name AS location, ")
+				.append("g.name AS transferType, ").append("g.TRANSFERTYPEID AS transferTypeId, ")
+				.append("h.transfername, ").append("h.Transferid AS transferId, ")
+				.append("i.BUSINESSUNITID AS businessUnitId, ").append("c.name AS prevDepartment, ")
+				.append("d.name AS department, ").append("e.name AS prevDesignation, ")
+				.append("f.name AS designation, ").append("b.departmentId, ")
+				.append("b.DESIGNATIONID AS designationId, ").append("b.transferreddate AS transferredDate, ")
+				.append("CONCAT(b.prevreportingid, '-', j.callname) AS prevReportingManager,b.prevreportingid, ")
+				.append("b.reportingDate,b.sectionid,b.transactionid,k.callname AS currentReportingManager,b.reportingid ")
+				.append("FROM hclhrm_prod.tbl_employee_primary a ")
+				.append("JOIN test.tbl_employee_transfers_temp b ON a.employeeid = b.employeeid ")
+				.append("LEFT JOIN hcladm_prod.tbl_department c ON c.departmentid = b.prevdepartmentid ")
+				.append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = b.departmentid ")
+				.append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = b.prevdesignationid ")
+				.append("LEFT JOIN hcladm_prod.tbl_designation f ON f.designationid = b.designationid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_transfer_types g ON g.transfertypeid = b.transfertypeid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_transfer_details h ON h.transferid = b.transferid ")
+				.append("LEFT JOIN hcladm_prod.tbl_businessunit i ON i.businessunitid = b.businessunitid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary j ON j.employeesequenceno = b.prevreportingid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary k ON k.employeesequenceno = b.reportingid ")
+				.append("WHERE a.status = 1001 AND b.status = 1001 ").append("ORDER BY c.lupdate DESC");
 
 		return jdbcTemplate.queryForList(query.toString());
 	}
 
 	public Object getByEmpid(int employeeseq) {
-		StringBuffer query = new StringBuffer();
-		query.append("SELECT ").append("a.employeesequenceno AS empid, ").append("a.employeeid, ")
-				.append("b.designationid, ").append("e.name as designationname, ").append("b.departmentid, ").append("a.companyid AS buid, ")
-				.append("f.name AS buname, ").append("g.employmenttypeid ")
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT ").append("    a.employeesequenceno AS empid, ").append("    a.employeeid, ")
+				.append("    a.callname as employeename, ")
+				.append("    e.name AS designationname, d.name as departmentname, ")
+				.append("    a.companyid AS buid, ").append("    f.name AS buname, ").append("    g.employmenttypeid, ")
+				.append("    m.employeesequenceno AS reportingid, ").append("    m.callname AS reportingname ")
 				.append("FROM hclhrm_prod.tbl_employee_primary a ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employee_profile_businessunit c ON c.employeeid = b.employeeid ")
-				.append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = b.departmentid ")
-				.append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = b.designationid ")
-				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = a.companyid ")
-				.append("LEFT JOIN hclhrm_prod.tbl_employment_types g ON g.employmenttypeid = a.employmenttypeid ")
-				.append("WHERE a.employeesequenceno = ? AND a.status = 1001 ").append("GROUP BY a.employeesequenceno");
-		
-		System.err.println("employeeseq-----"+query.toString());
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ")
+				.append("       ON a.employeeid = b.employeeid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_profile_businessunit c ")
+				.append("       ON c.employeeid = b.employeeid ").append("LEFT JOIN hcladm_prod.tbl_department d ")
+				.append("       ON d.departmentid = b.departmentid ").append("LEFT JOIN hcladm_prod.tbl_designation e ")
+				.append("       ON e.designationid = b.designationid ")
+				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ").append("       ON f.businessunitid = a.companyid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employment_types g ")
+				.append("       ON g.employmenttypeid = a.employmenttypeid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary m ").append("       ON m.employeeid = b.managerid ")
+				.append("WHERE a.employeesequenceno = ? ").append("  AND a.status = 1001 ")
+				.append("GROUP BY a.employeesequenceno");
+		List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
 
-		
-			List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
-			
-			//System.err.println("employeeseq-----"+employeeseq);
-			if (result.isEmpty()) {
-				
-				System.err.println("employeeseq-----"+employeeseq);
-				throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
-			}
-			return result;
-		
+		if (result.isEmpty()) {
+			throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
+		}
 
+		return result;
 	}
 
 	public Object getTransferTypes() {
@@ -109,88 +107,148 @@ public class PromotionService {
 	}
 
 	public ResponseEntity<?> registation(PromotionRegistation promotionRegistation) {
-		System.out.println("Designation ID: " + promotionRegistation.getDesignationid());
-		System.out.println("Employee ID: " + promotionRegistation.getEmployeeid());
-		String checkQuery = "SELECT COUNT(*) FROM hclhrm_prod.tbl_employee_transfers_temp WHERE designationid = ? AND employeeid = ? and status=1001";
 		try {
+			String checkQuery = "SELECT COUNT(*) FROM test.tbl_employee_transfers_temp "
+					+ "WHERE designationid = ? AND employeeid = ? AND status = 1001";
+
 			int count = jdbcTemplate.queryForObject(checkQuery, Integer.class, promotionRegistation.getDesignationid(),
 					promotionRegistation.getEmployeeid());
 
 			if (count > 0) {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-						.body("Record already exists with the same Designation ID and Employee ID.");
+						.body("This employee is already assigned to the selected designation.");
 			}
-			StringBuffer query = new StringBuffer();
-			query.append("INSERT INTO hclhrm_prod.tbl_employee_transfers_temp ")
-					.append("(EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, DEPARTMENTID, SECTIONID, ")
-					.append("DESIGNATIONID, TRANSFERREDDATE, REPORTINGID, REPORTINGDATE, ")
-					.append("CREATEDBY, DATECREATED) ").append("VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+			StringBuilder query = new StringBuilder();
+			query.append("SELECT ").append(" a.employeesequenceno AS empid, ").append(" a.employeeid, ")
+					.append(" b.designationid, ").append(" b.departmentid, ").append(" a.companyid AS buid, ")
+					.append(" c.employeesequenceno AS reportingid ").append("FROM hclhrm_prod.tbl_employee_primary a ")
+					.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
+					.append("LEFT JOIN hclhrm_prod.tbl_employee_primary c ON  c.EMPLOYEEID=b.managerid ")
+					.append("WHERE a.employeeid = ? AND a.status = 1001 ")
+					.append("GROUP BY a.employeesequenceno");
 
-			int rowsAffected = jdbcTemplate.update(query.toString(),
-					promotionRegistation.getEmployeeid() == 0 ? null : promotionRegistation.getEmployeeid(),
-					promotionRegistation.getTransfertypeid() == 0 ? null : promotionRegistation.getTransfertypeid(),
-					promotionRegistation.getTransferid() == 0 ? null : promotionRegistation.getTransferid(),
-					promotionRegistation.getBusinessunitid() == 0 ? null : promotionRegistation.getBusinessunitid(),
-					promotionRegistation.getDepartmentid() == 0 ? null : promotionRegistation.getDepartmentid(),
-					promotionRegistation.getSectionid() == 0 ? null : promotionRegistation.getSectionid(),
-					promotionRegistation.getDesignationid() == 0 ? null : promotionRegistation.getDesignationid(),
-					promotionRegistation.getTransferreddate(),
-					promotionRegistation.getReportingid() == 0 ? null : promotionRegistation.getReportingid(),
-					promotionRegistation.getReportingdate(),
-					promotionRegistation.getCreatedby() == 0 ? null : promotionRegistation.getCreatedby());
+			List<Map<String, Object>> empDataList = jdbcTemplate.queryForList(query.toString(),
+					promotionRegistation.getEmployeeid());
+
+			if (empDataList.isEmpty()) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("No employee found with empid: " + promotionRegistation.getEmployeeid());
+			}
+			Map<String, Object> empData = empDataList.get(0);
+
+			Number dep = (Number) empData.get("departmentid");
+			Number desig = (Number) empData.get("designationid");
+			Number report = (Number) empData.get("reportingid");
+
+			Integer prevDepartmentId = dep != null ? dep.intValue() : null;
+			Integer prevDesignationId = desig != null ? desig.intValue() : null;
+			Integer prevReportingId = report != null ? report.intValue() : null;
+
+			String insertQuery = "INSERT INTO test.tbl_employee_transfers_temp "
+					+ "(EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, "
+					+ "PREVDEPARTMENTID, DEPARTMENTID, SECTIONID, "
+					+ "PREVDESIGNATIONID, DESIGNATIONID, TRANSFERREDDATE, "
+					+ "PREVREPORTINGID, REPORTINGID, REPORTINGDATE, " + "CREATEDBY, DATECREATED) "
+					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+
+			int rowsAffected = jdbcTemplate.update(insertQuery, promotionRegistation.getEmployeeid(),
+					promotionRegistation.getTransfertypeid(), promotionRegistation.getTransferid(),
+					promotionRegistation.getBusinessunitid(), prevDepartmentId, promotionRegistation.getDepartmentid(),
+					promotionRegistation.getSectionid(), prevDesignationId, promotionRegistation.getDesignationid(),
+					promotionRegistation.getTransferreddate(), prevReportingId, promotionRegistation.getReportingid(),
+					promotionRegistation.getReportingdate(), promotionRegistation.getCreatedby());
 
 			if (rowsAffected > 0) {
 				return ResponseEntity.status(HttpStatus.OK).body("Insertion successful!");
 			} else {
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Insertion failed. No rows affected.");
 			}
+
 		} catch (DataAccessException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("Internal Server Error: " + e.getMessage());
 		}
-
 	}
 
 	public Object update(int transactionid, PromotionRegistation promotionRegistation) {
-		StringBuffer query = new StringBuffer();
-		query.append("UPDATE hclhrm_prod.tbl_employee_transfers_temp SET ").append("TRANSFERTYPEID = ?, ")
-				.append("TRANSFERID = ?, ").append("BUSINESSUNITID = ?, ").append("DEPARTMENTID = ?, ")
-				.append("SECTIONID = ?, ").append("DESIGNATIONID = ?, ").append("TRANSFERREDDATE = ?, ")
-				.append("REPORTINGID = ?, ").append("REPORTINGDATE = ?, ").append("datemodified = NOW(),FLAG='P'  ")
-				.append("WHERE transactionid = ?");
+	    try {
+	        String backupSql = "INSERT INTO test.tbl_employee_transfers_temp_backup " +
+	                "(EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, COSTCENTERID, " +
+	                "PREVDEPARTMENTID, DEPARTMENTID, SECTIONID, PREVDESIGNATIONID, DESIGNATIONID, " +
+	                "WORKLOCATIONID, SUBLOCATIONID, TRANSFERREDDATE, PREVREPORTINGID, REPORTINGID, " +
+	                "REPORTINGDATE, REPORTINGTIME, NOTES, TRANSFERSTATUS, PAYSHEETGROUPID, PAYSTRUCTUREID, " +
+	                "CREATEDBY, DATECREATED, MODIFIEDBY, DATEMODIFIED, VERIFIEDBY, DATEVERIFIED, LOGID, STATUS, FLAG, FILEPATH) " +
+	                "SELECT EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, COSTCENTERID, " +
+	                "PREVDEPARTMENTID, DEPARTMENTID, SECTIONID, PREVDESIGNATIONID, DESIGNATIONID, " +
+	                "WORKLOCATIONID, SUBLOCATIONID, TRANSFERREDDATE, PREVREPORTINGID, REPORTINGID, " +
+	                "REPORTINGDATE, REPORTINGTIME, NOTES, TRANSFERSTATUS, PAYSHEETGROUPID, PAYSTRUCTUREID, " +
+	                "CREATEDBY, DATECREATED, MODIFIEDBY, DATEMODIFIED, VERIFIEDBY, DATEVERIFIED, LOGID, STATUS, FLAG, FILEPATH " +
+	                "FROM test.tbl_employee_transfers_temp WHERE TRANSACTIONID = ?";
 
-		try {
-			int rowsAffected = jdbcTemplate.update(query.toString(),
-					promotionRegistation.getTransfertypeid() == 0 ? null : promotionRegistation.getTransfertypeid(),
-					promotionRegistation.getTransferid() == 0 ? null : promotionRegistation.getTransferid(),
-					promotionRegistation.getBusinessunitid() == 0 ? null : promotionRegistation.getBusinessunitid(),
-					promotionRegistation.getDepartmentid() == 0 ? null : promotionRegistation.getDepartmentid(),
-					promotionRegistation.getSectionid() == 0 ? null : promotionRegistation.getSectionid(),
-					promotionRegistation.getDesignationid() == 0 ? null : promotionRegistation.getDesignationid(),
-					promotionRegistation.getTransferreddate(),
-					promotionRegistation.getReportingid() == 0 ? null : promotionRegistation.getReportingid(),
-					promotionRegistation.getReportingdate(), transactionid);
+	        jdbcTemplate.update(backupSql, transactionid);
+	        String updateSql = "UPDATE test.tbl_employee_transfers_temp SET " +
+	                "TRANSFERTYPEID = ?, TRANSFERID = ?, BUSINESSUNITID = ?, DEPARTMENTID = ?, " +
+	                "SECTIONID = ?, DESIGNATIONID = ?, TRANSFERREDDATE = ?, REPORTINGID = ?, REPORTINGDATE = ?, " +
+	                "MODIFIEDBY = ?, DATEMODIFIED = NOW(), FLAG = 'P' " +
+	                "WHERE TRANSACTIONID = ?";
+	        int rowsAffected = jdbcTemplate.update(updateSql,
+	                promotionRegistation.getTransfertypeid() == 0 ? null : promotionRegistation.getTransfertypeid(),
+	                promotionRegistation.getTransferid() == 0 ? null : promotionRegistation.getTransferid(),
+	                promotionRegistation.getBusinessunitid() == 0 ? null : promotionRegistation.getBusinessunitid(),
+	                promotionRegistation.getDepartmentid() == 0 ? null : promotionRegistation.getDepartmentid(),
+	                promotionRegistation.getSectionid() == 0 ? null : promotionRegistation.getSectionid(),
+	                promotionRegistation.getDesignationid() == 0 ? null : promotionRegistation.getDesignationid(),
+	                promotionRegistation.getTransferreddate(),
+	                promotionRegistation.getReportingid() == 0 ? null : promotionRegistation.getReportingid(),
+	                promotionRegistation.getReportingdate(),
+	                promotionRegistation.getUpdatedby(),
+	                transactionid);
 
-			if (rowsAffected > 0) {
-				return ResponseEntity.status(HttpStatus.OK).body("Updation successful!");
-			} else {
-				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Updation failed. No rows affected.");
-			}
-		} catch (DataAccessException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.body("Internal Server Error: " + e.getMessage());
-		}
+	        if (rowsAffected > 0) {
+	            return ResponseEntity.status(HttpStatus.OK).body("Updation successful! Previous record backed up.");
+	        } else {
+	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Updation failed. No rows affected.");
+	        }
+
+	    } catch (DataAccessException e) {
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                .body("Internal Server Error: " + e.getMessage());
+	    }
 	}
 
-	public Object delete(int transactionid) {
-		StringBuffer query = new StringBuffer();
-		query.append("UPDATE hclhrm_prod.tbl_employee_transfers_temp SET STATUS = 1002 WHERE transactionid = ?");
-		int rowsAffected = jdbcTemplate.update(query.toString(), transactionid);
-		if (rowsAffected > 0) {
-			return "Update successful, " + rowsAffected + " row(s) updated.";
-		} else {
-			return "No record found with the given transactionid.";
-		}
+//	public Object delete(int transactionid) {
+//		StringBuffer query = new StringBuffer();
+//		query.append("UPDATE test.tbl_employee_transfers_temp SET STATUS = 1002 WHERE transactionid = ?");
+//		int rowsAffected = jdbcTemplate.update(query.toString(), transactionid);
+//		if (rowsAffected > 0) {
+//			return "Update successful, " + rowsAffected + " row(s) updated.";
+//		} else {
+//			return "No record found with the given transactionid.";
+//		}
+//	}
+	public Object delete(int transactionid,int removedby) {
+	        String backupSql = "INSERT INTO test.tbl_employee_transfers_temp_backup " +
+	                "(EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, COSTCENTERID, " +
+	                "PREVDEPARTMENTID, DEPARTMENTID, SECTIONID, PREVDESIGNATIONID, DESIGNATIONID, " +
+	                "WORKLOCATIONID, SUBLOCATIONID, TRANSFERREDDATE, PREVREPORTINGID, REPORTINGID, " +
+	                "REPORTINGDATE, REPORTINGTIME, NOTES, TRANSFERSTATUS, PAYSHEETGROUPID, PAYSTRUCTUREID, " +
+	                "CREATEDBY, DATECREATED, MODIFIEDBY, DATEMODIFIED, VERIFIEDBY, DATEVERIFIED, LOGID, STATUS, FLAG, FILEPATH) " +
+	                "SELECT EMPLOYEEID, TRANSFERTYPEID, TRANSFERID, BUSINESSUNITID, COSTCENTERID, " +
+	                "PREVDEPARTMENTID, DEPARTMENTID, SECTIONID, PREVDESIGNATIONID, DESIGNATIONID, " +
+	                "WORKLOCATIONID, SUBLOCATIONID, TRANSFERREDDATE, PREVREPORTINGID, REPORTINGID, " +
+	                "REPORTINGDATE, REPORTINGTIME, NOTES, TRANSFERSTATUS, PAYSHEETGROUPID, PAYSTRUCTUREID, " +
+	                "CREATEDBY, DATECREATED, MODIFIEDBY, DATEMODIFIED, VERIFIEDBY, DATEVERIFIED, LOGID, STATUS, FLAG, FILEPATH " +
+	                "FROM test.tbl_employee_transfers_temp WHERE TRANSACTIONID = ?";
+
+	        jdbcTemplate.update(backupSql, transactionid);
+
+	        String deleteSql = "UPDATE test.tbl_employee_transfers_temp SET STATUS = 1002, DATEMODIFIED = NOW(), FLAG='D',LOGID=? WHERE TRANSACTIONID = ?";
+	        int rowsAffected = jdbcTemplate.update(deleteSql,removedby, transactionid);
+	        if (rowsAffected > 0) {
+	            return "Delete successful, " + rowsAffected + " row(s) updated";
+	        } else {
+	            return "No record found with the given transactionid.";
+	        }
 	}
 
 	public List<Map<String, Object>> getReporties(String search) {
@@ -211,113 +269,72 @@ public class PromotionService {
 		return jdbcTemplate.queryForList(query.toString());
 	}
 
-//	public Object insertregistation(ConfirmationRegistation confirmationRegistation) {
-//		try {
-//			String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
-//					+ "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
-//					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " + "ON DUPLICATE KEY UPDATE "
-//					+ "DESIGNATIONID = VALUES(DESIGNATIONID), " + "DEPARTMENTID = VALUES(DEPARTMENTID), "
-//					+ "SECTIONID = VALUES(SECTIONID), " + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
-//					+ "ONDATE = VALUES(ONDATE), " + "COMMENTS = VALUES(COMMENTS), " + "STATUS = VALUES(STATUS)";
-//
-//			int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery, confirmationRegistation.getEmployeeid(),
-//					confirmationRegistation.getDesignationid(), confirmationRegistation.getDepartmentid(),
-//					confirmationRegistation.getSectionid(), confirmationRegistation.getEmploymenttypeid(),
-//					confirmationRegistation.getConfirmationdate(), confirmationRegistation.getComments(), 1001);
-//
-//			if (rowsAffected > 0) {
-//				return ResponseEntity.status(HttpStatus.OK).body("Insertion successful!");
-//				
-//				
-//			} else {
-//				return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("No rows affected.");
-//			}
-//		} catch (DataAccessException e) {
-//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//					.body("Internal Server Error: " + e.getMessage());
-//		}
-//	}
-	
-	
-	
 	@Transactional
 	public Object insertregistation(ConfirmationRegistation confirmationRegistation) {
-	    try {
-	      
-	        String checkQuery = "SELECT count(*) FROM test.tbl_employee_confirmation_details WHERE employeeid=? AND status=1001";
-	        int count = jdbcTemplate.queryForObject(checkQuery, Integer.class, confirmationRegistation.getEmployeeid());
- 
-	        if (count > 0) {
-	        	throw new EmployeeAlreadyFoundException("Employee already confirmed. Duplicate entry detected. Please use the edit option below on the displayed screen to search for the employee and update the record");
-	        }
-	        String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
-	                + "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
-	                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
-	                + "ON DUPLICATE KEY UPDATE "
-	                + "DESIGNATIONID = VALUES(DESIGNATIONID), "
-	                + "DEPARTMENTID = VALUES(DEPARTMENTID), "
-	                + "SECTIONID = VALUES(SECTIONID), "
-	                + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
-	                + "ONDATE = VALUES(ONDATE), "
-	                + "COMMENTS = VALUES(COMMENTS), "
-	                + "STATUS = VALUES(STATUS)";
- 
-	        int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery,
-	                confirmationRegistation.getEmployeeid(),
-	                confirmationRegistation.getDesignationid(),
-	                confirmationRegistation.getDepartmentid(),
-	                confirmationRegistation.getSectionid(),
-	                confirmationRegistation.getEmploymenttypeid(),
-	                confirmationRegistation.getConfirmationdate(),
-	                confirmationRegistation.getComments(),
-	                1001);
- 
-	        if (rowsAffected > 0) {
-	            boolean employeePrimaryUpdated = updateEmployeePrimary(confirmationRegistation.getEmployeeid());
- 
-	            if (employeePrimaryUpdated) {
-	                boolean leaveQuotaUpdated = updateLeaveQuota(confirmationRegistation.getEmployeeid());
- 
-	                if (leaveQuotaUpdated) {
-	                    return ResponseEntity.status(HttpStatus.OK).body("Insertion Sucessfull");
-	                } else {
-	                  
-	                    throw new RuntimeException("Leave quota update failed.");
-	                }
-	            } else {
-	              
-	                throw new RuntimeException("Employee is not probition");
-	            }
-	        } else {
-	           
-	            throw new RuntimeException("No rows affected during insertion.");
-	        }
-	    } catch (DataAccessException e) {
-	        System.err.println("Database error: " + e.getMessage());
-	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-	                .body("Internal Server Error: " + e.getMessage());
-	    }
+		try {
+
+			String checkQuery = "SELECT count(*) FROM test.tbl_employee_confirmation_details WHERE employeeid=? AND status=1001";
+			int count = jdbcTemplate.queryForObject(checkQuery, Integer.class, confirmationRegistation.getEmployeeid());
+
+			if (count > 0) {
+				throw new EmployeeAlreadyFoundException(
+						"Employee already confirmed. Duplicate entry detected. Please use the edit option below on the displayed screen to search for the employee and update the record");
+			}
+			String insertOrUpdateQuery = "INSERT INTO test.tbl_employee_confirmation_details "
+					+ "(EMPLOYEEID, DESIGNATIONID, DEPARTMENTID, SECTIONID, EMPLOYMENTTYPEID, ONDATE, COMMENTS, STATUS) "
+					+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?) " + "ON DUPLICATE KEY UPDATE "
+					+ "DESIGNATIONID = VALUES(DESIGNATIONID), " + "DEPARTMENTID = VALUES(DEPARTMENTID), "
+					+ "SECTIONID = VALUES(SECTIONID), " + "EMPLOYMENTTYPEID = VALUES(EMPLOYMENTTYPEID), "
+					+ "ONDATE = VALUES(ONDATE), " + "COMMENTS = VALUES(COMMENTS), " + "STATUS = VALUES(STATUS)";
+
+			int rowsAffected = jdbcTemplate.update(insertOrUpdateQuery, confirmationRegistation.getEmployeeid(),
+					confirmationRegistation.getDesignationid(), confirmationRegistation.getDepartmentid(),
+					confirmationRegistation.getSectionid(), confirmationRegistation.getEmploymenttypeid(),
+					confirmationRegistation.getConfirmationdate(), confirmationRegistation.getComments(), 1001);
+
+			if (rowsAffected > 0) {
+				boolean employeePrimaryUpdated = updateEmployeePrimary(confirmationRegistation.getEmployeeid());
+
+				if (employeePrimaryUpdated) {
+					boolean leaveQuotaUpdated = updateLeaveQuota(confirmationRegistation.getEmployeeid());
+
+					if (leaveQuotaUpdated) {
+						return ResponseEntity.status(HttpStatus.OK).body("Insertion Sucessfull");
+					} else {
+
+						throw new RuntimeException("Leave quota update failed.");
+					}
+				} else {
+
+					throw new RuntimeException("Employee is not probition");
+				}
+			} else {
+
+				throw new RuntimeException("No rows affected during insertion.");
+			}
+		} catch (DataAccessException e) {
+			System.err.println("Database error: " + e.getMessage());
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Internal Server Error: " + e.getMessage());
+		}
 	}
- 
+
 	private boolean updateEmployeePrimary(int employeeid) {
-	    String updateQuery = "UPDATE hclhrm_prod.tbl_employee_primary "
-	            + "SET employmenttypeid = 1 "
-	            + "WHERE employeeid = ? AND employmenttypeid = 2 AND status = 1001";
-	    
-	    int updateRows = jdbcTemplate.update(updateQuery, employeeid);
-	    return updateRows > 0;
+		String updateQuery = "UPDATE hclhrm_prod.tbl_employee_primary " + "SET employmenttypeid = 1 "
+				+ "WHERE employeeid = ? AND employmenttypeid = 2 AND status = 1001";
+
+		int updateRows = jdbcTemplate.update(updateQuery, employeeid);
+		return updateRows > 0;
 	}
- 
+
 	private boolean updateLeaveQuota(int employeeid) {
-	    String leaveQuotaUpdateQuery = "UPDATE hclhrm_prod_others.tbl_emp_leave_quota "
-	            + "SET maxleave = 3, for_month = 0 "
-	            + "WHERE employeeid IN (SELECT EMPLOYEEID FROM hclhrm_prod.tbl_employee_primary "
-	            + "WHERE employeeid = ?) "
-	            + "AND status = 1001 AND leavetypeid IN (1, 2)";
-	    int leaveQuotaRowsAffected = jdbcTemplate.update(leaveQuotaUpdateQuery, employeeid);
-	    return leaveQuotaRowsAffected > 0;
+		String leaveQuotaUpdateQuery = "UPDATE hclhrm_prod_others.tbl_emp_leave_quota "
+				+ "SET maxleave = 3, for_month = 0 "
+				+ "WHERE employeeid IN (SELECT EMPLOYEEID FROM hclhrm_prod.tbl_employee_primary "
+				+ "WHERE employeeid = ?) " + "AND status = 1001 AND leavetypeid IN (1, 2)";
+		int leaveQuotaRowsAffected = jdbcTemplate.update(leaveQuotaUpdateQuery, employeeid);
+		return leaveQuotaRowsAffected > 0;
 	}
-	
 
 	public Object fetchConfirmationData() {
 		StringBuffer query = new StringBuffer();
@@ -367,36 +384,34 @@ public class PromotionService {
 			return "No record found with the given transactionid.";
 		}
 	}
-	
+
 	public String checkconfirmation(String employeeId) {
 //        String query = "SELECT IF(CURDATE() >= i.RELEASE_DATE, 'TRUE', 'FALSE') AS VIEW " +
 //                       "FROM test.tbl_increment_letter i " +
 //                       "WHERE i.employeeid = ? AND i.FLAG = 'S'";
-		
-		
-		String query = "SELECT IF(C.FILE_PATH = '0', 'FALSE', 'TRUE') AS VIEW " +
-	               "FROM TEST.TBL_EMPLOYEE_CONFIRMATION_DETAILS C " +
-	               "LEFT JOIN hclhrm_prod.tbl_employee_primary P ON P.EMPLOYEEID = C.EMPLOYEEID " +
-	               "LEFT JOIN hcladm_prod.tbl_businessunit bu ON bu.businessunitid = p.companyid " +
-	               "WHERE p.EMPLOYEESEQUENCENO = ? AND C.FLAG = 'S'";
 
-        
-        try {
-            // Execute query using jdbcTemplate with prepared statement
-            String view = jdbcTemplate.queryForObject(query, new Object[]{employeeId}, String.class);
+		String query = "SELECT IF(C.FILE_PATH = '0', 'FALSE', 'TRUE') AS VIEW "
+				+ "FROM TEST.TBL_EMPLOYEE_CONFIRMATION_DETAILS C "
+				+ "LEFT JOIN hclhrm_prod.tbl_employee_primary P ON P.EMPLOYEEID = C.EMPLOYEEID "
+				+ "LEFT JOIN hcladm_prod.tbl_businessunit bu ON bu.businessunitid = p.companyid "
+				+ "WHERE p.EMPLOYEESEQUENCENO = ? AND C.FLAG = 'S'";
 
-            return view; // Return the VIEW value obtained from the query
+		try {
+			// Execute query using jdbcTemplate with prepared statement
+			String view = jdbcTemplate.queryForObject(query, new Object[] { employeeId }, String.class);
 
-        } catch (EmptyResultDataAccessException e) {
-            // Handle case where no rows are returned by the query
-            System.out.println("No record found for employeeId: " + employeeId);
-            return "FALSE"; // Return "FALSE" if no matching record found
-        } catch (Exception err) {
-            // Catch any other exceptions
-            System.out.println("Exception in checkincrementrespository method: " + err.getMessage());
-            err.printStackTrace(); // Print stack trace for detailed error information
-            return "FALSE"; // Return "FALSE" in case of any exception
-        }
-    }
+			return view; // Return the VIEW value obtained from the query
+
+		} catch (EmptyResultDataAccessException e) {
+			// Handle case where no rows are returned by the query
+			System.out.println("No record found for employeeId: " + employeeId);
+			return "FALSE"; // Return "FALSE" if no matching record found
+		} catch (Exception err) {
+			// Catch any other exceptions
+			System.out.println("Exception in checkincrementrespository method: " + err.getMessage());
+			err.printStackTrace(); // Print stack trace for detailed error information
+			return "FALSE"; // Return "FALSE" in case of any exception
+		}
+	}
 
 }
