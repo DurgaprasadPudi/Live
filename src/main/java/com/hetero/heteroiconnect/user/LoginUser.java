@@ -39,6 +39,23 @@ public class LoginUser implements Serializable {
     @Column(name = "FIRSTNAME")
     private String FIRSTNAME;
 	
+
+	@JsonInclude(NON_NULL)
+    @Column(name = "FIRSTLOGIN")
+	private int FirstLogin;
+	
+	public int getFirstLogin() {
+		return FirstLogin;
+	}
+
+	public void setFirstLogin(int firstLogin) {
+		FirstLogin = firstLogin;
+	}
+
+
+
+	
+	
 	public String getICE_FIRSTNAME() {
 		return ICE_FIRSTNAME;
 	}
