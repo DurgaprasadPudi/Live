@@ -15,13 +15,13 @@ public class SimpleCORSFilter implements Filter {
     private final Logger log = LoggerFactory.getLogger(SimpleCORSFilter.class);
 
     // Set inactivity timeout to 30 seconds (30,000 milliseconds)
-     //private static final long EXPIRY = 30 * 1000L; // 30 seconds
+      //private static final long EXPIRY = 10 * 1000L; // 30 seconds
     
      //private static final long EXPIRY = 12 * 60 * 60 * 1000L; // 2 hours in milliseconds
      
      private static final long EXPIRY = 2 * 60 * 60 * 1000L; // 2 hours in milliseconds
-
-
+  
+    
     public SimpleCORSFilter() {
         log.info("SimpleCORSFilter initialized with 30-second timeout");
     }
@@ -49,7 +49,7 @@ public class SimpleCORSFilter implements Filter {
         response.setHeader("Access-Control-Allow-Credentials", "true");
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE, PUT");
         response.setHeader("Access-Control-Max-Age", "3600");
-        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, X-Last-Active");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, X-Last-Active,Access");
 
         // Allow preflight requests to pass
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
@@ -58,12 +58,17 @@ public class SimpleCORSFilter implements Filter {
         }
 
         // Check the X-Last-Active header for inactivity
-        String lastActive = "NA";
+        //String lastActive = "NA";
         
-        lastActive = request.getHeader("X-Last-Active");
-        System.err.println(lastActive+"inactiveTooLong");
+        String lastActive = request.getHeader("X-Last-Active");
+        
+        //String Access="NA";
+        
+        String  Access=request.getHeader("Access");
+        
+        //System.err.println(lastActive+"inactiveTooLong");
 
-        if(lastActive==null)
+        if(lastActive==null&&"heteroiconnect".equals(Access))
         {
         	 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
              return;
@@ -74,8 +79,8 @@ public class SimpleCORSFilter implements Filter {
                 long lastTime = Long.parseLong(lastActive);
                 long now = System.currentTimeMillis();
                 boolean inactiveTooLong = (now - lastTime > EXPIRY); // 30-second inactivity check
-                
-                System.out.println(inactiveTooLong+"inactiveTooLong");
+                 
+                //System.out.println(inactiveTooLong+"inactiveTooLong");
 
                 if (inactiveTooLong) {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized

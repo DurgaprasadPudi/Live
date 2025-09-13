@@ -61,6 +61,7 @@ public class InsuranceFilesController {
 	@GetMapping("/buforms")
 	// @Cacheable("forms")
 	public ResponseEntity<List<HrFormDTO>> getMasterHrForms() {
+		System.err.println("call");
 		return ResponseEntity.ok(insuranceFilesService.getMasterHrForms());
 	}
 

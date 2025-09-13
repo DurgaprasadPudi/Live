@@ -227,6 +227,7 @@ public class InsuranceFilesRepository {
 
 	public List<HrFormDTO> getMasterHrForms() {
 		String sql = "select bu_id ,bu_name,bu_image  from test.tbl_hr_forms_bu_map where status=1001";
+		//System.out.println("hi");
 		return jdbcTemplate.query(sql, (rs, rowNum) -> {
 			String fileName = rs.getString("bu_name");
 			String filePath = rs.getString("bu_image");
