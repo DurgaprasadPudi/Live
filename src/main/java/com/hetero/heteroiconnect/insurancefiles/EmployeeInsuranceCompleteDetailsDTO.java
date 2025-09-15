@@ -15,6 +15,7 @@ public class EmployeeInsuranceCompleteDetailsDTO {
 	private String dob;
 	private String age;
 	private String maritalStatus;
+	private String finalSumInsurance;
 	private PremiumInfoDTO premiumInfoDTO;
 	private List<FamilyInsuranceCompleteDetailsDTO> familyInsuranceCompleteDetailsDTO;
 
@@ -24,7 +25,7 @@ public class EmployeeInsuranceCompleteDetailsDTO {
 
 	public EmployeeInsuranceCompleteDetailsDTO(String empId, String name, String relation, String division,
 			String department, String designation, String doj, String gender, String dob, String age,
-			String maritalStatus, PremiumInfoDTO premiumInfoDTO,
+			String maritalStatus, String finalSumInsurance, PremiumInfoDTO premiumInfoDTO,
 			List<FamilyInsuranceCompleteDetailsDTO> familyInsuranceCompleteDetailsDTO) {
 		super();
 		this.empId = empId;
@@ -38,8 +39,17 @@ public class EmployeeInsuranceCompleteDetailsDTO {
 		this.dob = dob;
 		this.age = age;
 		this.maritalStatus = maritalStatus;
+		this.finalSumInsurance = finalSumInsurance;
 		this.premiumInfoDTO = premiumInfoDTO;
 		this.familyInsuranceCompleteDetailsDTO = familyInsuranceCompleteDetailsDTO;
+	}
+
+	public String getFinalSumInsurance() {
+		return finalSumInsurance;
+	}
+
+	public void setFinalSumInsurance(String finalSumInsurance) {
+		this.finalSumInsurance = finalSumInsurance;
 	}
 
 	public String getEmpId() {

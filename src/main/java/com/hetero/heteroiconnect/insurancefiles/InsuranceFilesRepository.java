@@ -380,7 +380,7 @@ public class InsuranceFilesRepository {
 				(rs, rowNum) -> new EmployeeInsuranceCompleteDetailsDTO(rs.getString("empId"), rs.getString("name"),
 						rs.getString("relation"), rs.getString("division"), rs.getString("department"),
 						rs.getString("designation"), rs.getString("doj"), rs.getString("gender"), rs.getString("dob"),
-						String.valueOf(rs.getInt("age")), rs.getString("marital_status"),
+						String.valueOf(rs.getInt("age")), rs.getString("marital_status"), rs.getString("sum_insurance"),
 						getGrossPremium(rs.getString("empId")), getFamilyPremiumDetails(rs.getString("empId"))));
 	}
 
