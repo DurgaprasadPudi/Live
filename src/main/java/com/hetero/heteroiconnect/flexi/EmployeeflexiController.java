@@ -162,6 +162,12 @@ public class EmployeeflexiController {
 		 		  boolean flag=false; 
 		 		  
 		 		  String Parentpath="null";
+		 		  
+		 		  
+		 		 if (emp.startsWith("6")) {
+		 	        Parentpath = "BSTPAYSLIP";
+		 	    }
+		 		  
 		 		
 		 		try {
 					String EMPINFO="SELECT COUNT(*) COUNT FROM  hclhrm_prod.tbl_employee_login where EMPLOYEECODE='"+emp+"' and CONCAT(MD5('"+emp+"'),PASSWORD)='"+pwd+"';" ;
