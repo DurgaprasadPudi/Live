@@ -115,9 +115,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+    <exclusions>
+        <exclusion>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -422,6 +428,26 @@
 			</plugin>
 		</plugins>
 	</build>
+  <profiles>
+        <profile>
+            <id>heteroiconnect</id>
+            <build>
+                <finalName>heteroiconnect</finalName>
+            </build>
+            <properties>
+                <spring.profiles.active>hetero</spring.profiles.active>
+            </properties>
+        </profile>
 
+        <profile>
+            <id>azistabhutan</id>
+            <build>
+                <finalName>azistabhutan</finalName>
+            </build>
+            <properties>
+                <spring.profiles.active>azista</spring.profiles.active>
+            </properties>
+        </profile>
+    </profiles>
 
 </project>
