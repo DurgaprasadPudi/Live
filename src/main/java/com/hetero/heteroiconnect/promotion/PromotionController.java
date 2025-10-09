@@ -39,6 +39,11 @@ public class PromotionController {
 	public Object getByEmpid(@RequestParam int employeeseq) {
 		return promotionService.getByEmpid(employeeseq);
 	}
+	  
+	@PostMapping("/getConfirmationByEmpid")
+	public Object getConfirmationByEmpid(@RequestParam int employeeseq) {
+		return promotionService.getConfirmationByEmpid(employeeseq);
+	}
 
 	@GetMapping(value = "/transfertypes", produces = "application/json")
 	public Object getTransferTypes() {

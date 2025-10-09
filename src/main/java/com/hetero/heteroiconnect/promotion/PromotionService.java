@@ -77,6 +77,34 @@ public class PromotionService {
 
 		return result;
 	}
+	
+	
+	public Object getConfirmationByEmpid(int employeeseq) {
+		StringBuffer query = new StringBuffer();
+		query.append("SELECT ").append("a.employeesequenceno AS empid, ").append("a.employeeid, ")
+				.append("b.designationid, ").append("b.departmentid, ").append("a.companyid AS buid, ")
+				.append("f.name AS buname, ").append("g.employmenttypeid ")
+				.append("FROM hclhrm_prod.tbl_employee_primary a ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_professional_details b ON a.employeeid = b.employeeid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employee_profile_businessunit c ON c.employeeid = b.employeeid ")
+				.append("LEFT JOIN hcladm_prod.tbl_department d ON d.departmentid = b.departmentid ")
+				.append("LEFT JOIN hcladm_prod.tbl_designation e ON e.designationid = b.designationid ")
+				.append("LEFT JOIN hcladm_prod.tbl_businessunit f ON f.businessunitid = a.companyid ")
+				.append("LEFT JOIN hclhrm_prod.tbl_employment_types g ON g.employmenttypeid = a.employmenttypeid ")
+				.append("WHERE a.employeesequenceno = ? AND a.status = 1001 ").append("GROUP BY a.employeesequenceno");
+
+		try {
+			List<Map<String, Object>> result = jdbcTemplate.queryForList(query.toString(), employeeseq);
+			if (result.isEmpty()) {
+				throw new EmployeeNotFoundException("Employee not found for employee sequence number: " + employeeseq);
+			}
+			return result;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException("An error occurred while processing the request.", e);
+		}
+
+	}
 
 	public Object getTransferTypes() {
 		String sql = "select TRANSFERTYPEID,NAME from hclhrm_prod.tbl_transfer_types";
