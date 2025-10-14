@@ -32,6 +32,39 @@ public class MasterReportServiceImpl implements MasterReportService {
 		}
 	}
 
+	
+	@Transactional(rollbackFor = Throwable.class)
+	public List<EmployeeMasterDetailsDTO> getReportingMasterDetails(String reportingIdsCsv) {
+		try {
+			return masterReportRepository.getReportingMasterDetails(reportingIdsCsv);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new UserWorkSheetUploadException(
+					messageBundleSource.getmessagebycode("master.report.error", new Object[] {}), e);
+		}
+	}
+	
+	  
+	    @Transactional(rollbackFor = Throwable.class)
+	    public List<Integer> getAllSubordinates(int managerSeq) {
+	        try {
+	            return masterReportRepository.getAllSubordinates(managerSeq);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            throw new RuntimeException("Error fetching subordinates for manager: " + managerSeq, e);
+	        }
+	    }
+	    
+	    @Transactional(readOnly = true)
+	    public List<String> getReportingEmployees(int managerSeq) {
+	        try {
+	            return masterReportRepository.getReportingEmployees(managerSeq);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            throw new RuntimeException("Error fetching reporting employees for managerSeq: " + managerSeq, e);
+	        }
+	    }
+	
 	@Transactional(rollbackFor = Throwable.class)
 	public List<Master> getStatusCodes() {
 		return masterReportRepository.getStatusCodes();

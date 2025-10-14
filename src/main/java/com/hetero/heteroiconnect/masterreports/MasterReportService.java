@@ -8,4 +8,10 @@ public interface MasterReportService {
 	List<EmployeeMasterDetailsDTO> getMasterDetails(MasterDetailsRequest request);
 
 	public List<Master> getStatusCodes();
+	
+	List<EmployeeMasterDetailsDTO> getReportingMasterDetails(String reportingIdsCsv);
+	
+	List<Integer> getAllSubordinates(int managerSeq);
+	
+	 List<String> getReportingEmployees(int managerSeq);
 }
