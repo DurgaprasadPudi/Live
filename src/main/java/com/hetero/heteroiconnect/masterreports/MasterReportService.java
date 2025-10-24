@@ -14,4 +14,5 @@ public interface MasterReportService {
 	List<Integer> getAllSubordinates(int managerSeq);
 	
 	 List<String> getReportingEmployees(int managerSeq);
+	 
 }
