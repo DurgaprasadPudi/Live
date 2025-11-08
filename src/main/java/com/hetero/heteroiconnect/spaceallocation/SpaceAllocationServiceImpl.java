@@ -47,7 +47,6 @@ public class SpaceAllocationServiceImpl implements SpaceAllocationService {
 		Map<String, Object> response = new HashMap<>();
 		try {
 			int rows = repository.updateStatusAndComments(allocationId, comments);
-
 			if (rows > 0) {
 				response.put("message", "Space allocation status updated successfully");
 			} else {
