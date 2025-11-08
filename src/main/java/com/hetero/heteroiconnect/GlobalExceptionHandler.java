@@ -44,6 +44,7 @@ import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.RequestItemsAlre
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.RequestedItemsFetchingException;
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.StationaryHouseKeepingRequestRaiseException;
 import com.hetero.heteroiconnect.stationaryandhousekeepingtrack.StockNotAvailableException;
+import com.hetero.heteroiconnect.worksheet.exception.BankInvalidEmployeeException;
 import com.hetero.heteroiconnect.worksheet.exception.DeleteTaskException;
 import com.hetero.heteroiconnect.worksheet.exception.DuplicateEmployeeException;
 import com.hetero.heteroiconnect.worksheet.exception.FuelAndDriverExpensesException;
@@ -110,7 +111,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<ErrorMessage> handleRuntimeException(RuntimeException ex) {
-		ErrorMessage errorResponse = new ErrorMessage("Error processing request", ex.getMessage());
+		ErrorMessage errorResponse = new ErrorMessage("Error processing requestsss", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
@@ -218,7 +219,13 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
-	
+
+	@ExceptionHandler(BankInvalidEmployeeException.class)
+	public ResponseEntity<ErrorResponse> handleException(BankInvalidEmployeeException ex) {
+		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
+		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
+	}
+
 	@ExceptionHandler(InsuranceDetailsDateExpiredException.class)
 	public ResponseEntity<ErrorResponse> handleException(InsuranceDetailsDateExpiredException ex) {
 		ErrorResponse errorResponse = new ErrorResponse("Error", ex.getMessage());
@@ -403,22 +410,17 @@ public class GlobalExceptionHandler {
 		ErrorResponse errorResponse = new ErrorResponse("Reader Data Fetching Error", ex.getMessage());
 		return new ResponseEntity<>(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
 	}
-	
+
 	@ExceptionHandler(DocketAlreadyFoundException.class)
 	public ResponseEntity<ErrorResponse> handleDocketExists(DocketAlreadyFoundException ex) {
-	    return new ResponseEntity<>(
-	        new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()), 
-	        HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()),
+				HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(DocketMissingException.class)
 	public ResponseEntity<ErrorResponse> handleDocketMissing(DocketMissingException ex) {
-	    return new ResponseEntity<>(
-	        new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()), 
-	        HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(new ErrorResponse(HttpStatus.BAD_REQUEST.toString(), ex.getMessage()),
+				HttpStatus.BAD_REQUEST);
 	}
-
-	
-	 
 
 }
