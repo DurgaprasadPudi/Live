@@ -34,7 +34,7 @@ public class SpaceAllocationRepository {
 		sql.append("SELECT ").append("a.allocation_id, a.department_id, b.name AS dept_name, ")
 				.append("a.designation_id, c.name AS desg_name, a.joining_date, ")
 				.append("a.cabin_or_seat, a.no_of_seats, a.status, a.comments, ")
-				.append("a.created_date_time, a.raised_by, d.callname ").append("FROM test.tbl_space_allocation a ")
+				.append("DATE_FORMAT(a.created_date_time, '%Y-%m-%d') AS created_date_time, a.raised_by, d.callname ").append("FROM test.tbl_space_allocation a ")
 				.append("LEFT JOIN HCLADM_PROD.TBL_DEPARTMENT b ON a.department_id = b.departmentid ")
 				.append("LEFT JOIN HCLADM_PROD.TBL_DESIGNATION c ON a.designation_id = c.designationid ")
 				.append("LEFT JOIN hclhrm_prod.tbl_employee_primary d ON a.raised_by = d.employeesequenceno ");
