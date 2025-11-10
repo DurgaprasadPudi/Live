@@ -6,6 +6,8 @@ public interface RightsAssignService {
 
 
 	Object getRights();
+	
+	Object getReqIPBotRights();
 
 	Object getAssignedDataEmployeeid(int employeeid);
 

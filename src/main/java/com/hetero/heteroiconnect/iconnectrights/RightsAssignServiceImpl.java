@@ -23,6 +23,17 @@ public class RightsAssignServiceImpl implements RightsAssignService {
 		List<Map<String, Object>> rightsList = jdbcTemplate.queryForList(sql);
 		return rightsList;
 	}
+	
+	@Override
+	public List<Map<String, Object>> getReqIPBotRights() {
+
+	    String sql = "SELECT businessunid, flag FROM test.ReqIPBot";
+	    
+	    List<Map<String, Object>> rightsList = jdbcTemplate.queryForList(sql);
+		return rightsList;
+	    
+	}
+
 
 	public Object addRightAssign(List<RightsAssignDTO> rightsList) {
 	    Map<String, Object> response = new HashMap<>();

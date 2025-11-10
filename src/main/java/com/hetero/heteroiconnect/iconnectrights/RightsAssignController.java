@@ -30,4 +30,9 @@ public class RightsAssignController {
 	public ResponseEntity<Object> getAssignedDataEmployeeid(@RequestParam int employeeid) {
 		return ResponseEntity.ok(rightsAssignService.getAssignedDataEmployeeid(employeeid));
 	}
+	
+	@GetMapping(value = "/getReqIPBotRights", produces = "application/json")
+	public ResponseEntity<Object> getReqIPBotRights() {
+		return ResponseEntity.ok(rightsAssignService.getReqIPBotRights());
+	}
 }
