@@ -262,51 +262,130 @@ public class Flexirepository {
 		
 		
 		 
+//		@SuppressWarnings("rawtypes")
+//		public JSONArray getpayslips(String Empid)
+//		{
+//		
+//			JSONArray empid= new JSONArray();
+//			net.sf.json.JSONObject ADD=new net.sf.json.JSONObject();
+//			try {
+//				//String EMPINFO="SELECT PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01')) YEAR,BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details where employeesequenceno="+Empid+" order by  payperiod desc limit 3" ;
+//				
+//				// for ravi sir Id disabled
+//				 String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and pc.STATUS='C' order by  payperiod desc limit 3";
+//				
+//				//String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and DD.EMPLOYEESEQUENCENO!=30546 and pc.STATUS='C' order by  payperiod desc limit 3";
+//				
+//				
+//				
+//				List<Map<String, Object>>  rows = jdbcTemplate.queryForList(EMPINFO.toString());
+//				// STATUS, DISPLAYNAME, HRMSEMPLOYEEID, EmpCode, Fullname, DIVISION, DEPT, DESIGNATION, STATUS, EmploymentType
+//				  for (@SuppressWarnings("rawtypes") Map row : rows) {
+//					  
+//					  ADD=new net.sf.json.JSONObject();
+//					  ADD.put("PAYPERIOD",row.get("PAYPERIOD"));
+//					  ADD.put("MONTHNAME",row.get("MONTHNAME"));
+//					  ADD.put("YEAR",row.get("YEAR"));
+//					  ADD.put("BUSINESSUNITID",row.get("BUSINESSUNITID"));
+//					  //null\BKP
+//					  File f = new File("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\null\\BKP\\"+row.get("PAYPERIOD")+"\\"+row.get("BUSINESSUNITID")+"\\"+Empid+".pdf");
+//					  if (f.exists())
+//				        {
+//				        	 ADD.put("URL","https://sso.heterohcl.com/null/FileNotFound.pdf");
+//				        }
+//				         else
+//				           {
+//				                	ADD.put("URL","https://sso.heterohcl.com/null/FileNotFound.pdf");
+//				           }
+//				 
+//					  //ADD.put("URL","http://iconnect.heterohcl.com/EmployeeAuth/download/files_mydesk/"+Empid+"/"+row.get("PAYPERIOD")+"-PAYSLIP-"+Empid+".pdf");
+//					  empid.add(ADD);
+//		        }
+//				}catch(Exception err){
+//					System.out.println("Exception at reverse" +err);
+//				}
+//			return empid;
+//		}
+//		
+		
+		
 		@SuppressWarnings("rawtypes")
-		public JSONArray getpayslips(String Empid)
-		{
-		
-			JSONArray empid= new JSONArray();
-			net.sf.json.JSONObject ADD=new net.sf.json.JSONObject();
-			try {
-				//String EMPINFO="SELECT PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(PAYPERIOD,4),'-',RIGHT(PAYPERIOD,2),'-','01')) YEAR,BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details where employeesequenceno="+Empid+" order by  payperiod desc limit 3" ;
-				
-				// for ravi sir Id disabled
-				 String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and pc.STATUS='C' order by  payperiod desc limit 3";
-				
-				//String EMPINFO="SELECT DD.PAYPERIOD,DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') MONTHNAME,YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) YEAR,DD.BUSINESSUNITID FROM hclhrm_prod.tbl_employee_payperiod_details dd LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process pc on pc.payperiod=dd.payperiod and pc.businessunitid=dd.businessunitid where employeesequenceno="+Empid+" and DD.EMPLOYEESEQUENCENO!=30546 and pc.STATUS='C' order by  payperiod desc limit 3";
-				
-				
-				
-				List<Map<String, Object>>  rows = jdbcTemplate.queryForList(EMPINFO.toString());
-				// STATUS, DISPLAYNAME, HRMSEMPLOYEEID, EmpCode, Fullname, DIVISION, DEPT, DESIGNATION, STATUS, EmploymentType
-				  for (@SuppressWarnings("rawtypes") Map row : rows) {
-					  
-					  ADD=new net.sf.json.JSONObject();
-					  ADD.put("PAYPERIOD",row.get("PAYPERIOD"));
-					  ADD.put("MONTHNAME",row.get("MONTHNAME"));
-					  ADD.put("YEAR",row.get("YEAR"));
-					  ADD.put("BUSINESSUNITID",row.get("BUSINESSUNITID"));
-					  //null\BKP
-					  File f = new File("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\null\\BKP\\"+row.get("PAYPERIOD")+"\\"+row.get("BUSINESSUNITID")+"\\"+Empid+".pdf");
-					  if (f.exists())
-				        {
-				        	 ADD.put("URL","https://sso.heterohcl.com/null/FileNotFound.pdf");
-				        }
-				         else
-				           {
-				                	ADD.put("URL","https://sso.heterohcl.com/null/FileNotFound.pdf");
-				           }
-				 
-					  //ADD.put("URL","http://iconnect.heterohcl.com/EmployeeAuth/download/files_mydesk/"+Empid+"/"+row.get("PAYPERIOD")+"-PAYSLIP-"+Empid+".pdf");
-					  empid.add(ADD);
+		public JSONArray getpayslips(String Empid) {
+
+		    JSONArray empidArray = new JSONArray();
+		    net.sf.json.JSONObject ADD = new net.sf.json.JSONObject();
+
+		    try {
+		        // Step 1: Get the employee's callname (location)
+		        String callnameQuery = 
+		            "SELECT BU.callname " +
+		            "FROM hclhrm_prod.tbl_employee_payperiod_details DD " +
+		            "LEFT JOIN hcladm_prod.tbl_businessunit BU ON BU.businessunitid = DD.businessunitid " +
+		            "LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process PC " +
+		            "ON PC.payperiod = DD.payperiod AND PC.businessunitid = DD.businessunitid " +
+		            "WHERE DD.employeesequenceno = " + Empid + " " +
+		            "AND PC.status = 'C' " +
+		            "ORDER BY DD.payperiod DESC LIMIT 1";
+
+		        String callname = "";
+		        List<Map<String, Object>> callnameRows = jdbcTemplate.queryForList(callnameQuery);
+		        if (!callnameRows.isEmpty() && callnameRows.get(0).get("callname") != null) {
+		            callname = callnameRows.get(0).get("callname").toString();
 		        }
-				}catch(Exception err){
-					System.out.println("Exception at reverse" +err);
-				}
-			return empid;
+
+		        // Step 2: Set limit based on callname
+		        String limit = "3"; // Default
+		        if ("MUM".equalsIgnoreCase(callname)) {
+		            limit = "12";
+		        } else if ("HYD".equalsIgnoreCase(callname)) {
+		            limit = "3";
+		        }
+
+		        // Step 3: Main query with dynamic limit
+		        String EMPINFO =
+		            "SELECT DD.PAYPERIOD, " +
+		            "DATE_FORMAT(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01'), '%b') AS MONTHNAME, " +
+		            "YEAR(CONCAT(LEFT(DD.PAYPERIOD,4),'-',RIGHT(DD.PAYPERIOD,2),'-','01')) AS YEAR, " +
+		            "DD.BUSINESSUNITID " +
+		            "FROM hclhrm_prod.tbl_employee_payperiod_details DD " +
+		            "LEFT JOIN hclhrm_prod.tbl_businessunit_payroll_process PC " +
+		            "ON PC.payperiod = DD.payperiod AND PC.businessunitid = DD.businessunitid " +
+		            "LEFT JOIN hcladm_prod.tbl_businessunit BU ON BU.businessunitid = DD.businessunitid " +
+		            "WHERE DD.employeesequenceno = " + Empid + " " +
+		            "AND PC.status = 'C' " +
+		            "AND BU.callname = '" + callname + "' " +
+		            "ORDER BY DD.payperiod DESC LIMIT " + limit;
+
+		        // Step 4: Execute and build JSON array
+		        List<Map<String, Object>> rows = jdbcTemplate.queryForList(EMPINFO);
+
+		        for (Map row : rows) {
+		            ADD = new net.sf.json.JSONObject();
+		            ADD.put("PAYPERIOD", row.get("PAYPERIOD"));
+		            ADD.put("MONTHNAME", row.get("MONTHNAME"));
+		            ADD.put("YEAR", row.get("YEAR"));
+		            ADD.put("BUSINESSUNITID", row.get("BUSINESSUNITID"));
+
+		            // Check if payslip PDF file exists
+		            File f = new File("C:\\Program Files\\Apache Software Foundation\\Tomcat 9.0\\webapps\\null\\BKP\\"
+		                    + row.get("PAYPERIOD") + "\\" + row.get("BUSINESSUNITID") + "\\" + Empid + ".pdf");
+
+		            if (f.exists()) {
+		                ADD.put("URL", "https://sso.heterohcl.com/null/BKP/" + row.get("PAYPERIOD") + "/" + row.get("BUSINESSUNITID") + "/" + Empid + ".pdf");
+		            } else {
+		                ADD.put("URL", "https://sso.heterohcl.com/null/FileNotFound.pdf");
+		            }
+
+		            empidArray.add(ADD);
+		        }
+
+		    } catch (Exception err) {
+		        System.out.println("Exception in getpayslips: " + err);
+		    }
+
+		    return empidArray;
 		}
-		
+
 		
 		@SuppressWarnings("rawtypes")
 		public JSONArray getITS(String Empid)
