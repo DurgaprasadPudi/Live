@@ -82,4 +82,16 @@ public class AttendanceService {
 					messageBundleSource.getmessagebycode("reader.data.fetch.error", new Object[] {}));
 		}
 	}
+	
+	
+	@Transactional(rollbackFor = Throwable.class)
+	public List<Map<String, Object>> getEmployeesLunchData(String dateValue) {
+		try {
+			return attendanceRepository.getEmployeesLunchData(dateValue);
+		} catch (Exception e) {
+			logger.error("{} error fetching reader employeelunch data", e.getMessage());
+			throw new ReaderDataFetchingException(
+					messageBundleSource.getmessagebycode("employee.lunch.reader.data.fetch.error", new Object[] {}));
+		}
+	}
 }

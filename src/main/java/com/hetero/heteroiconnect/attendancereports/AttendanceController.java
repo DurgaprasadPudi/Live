@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,5 +73,11 @@ public class AttendanceController {
 			throw new IllegalArgumentException("Invalid date format. Please use 'yyyy-MM-dd'");
 		}
 		return ResponseEntity.ok(attendanceService.getReaderData(fromDate, toDate));
+	}
+	
+	
+	@PostMapping("/lunchdata")
+	public ResponseEntity<List<Map<String, Object>>> getEmployeesLunchData(@RequestParam String dateValue) {
+		return ResponseEntity.ok(attendanceService.getEmployeesLunchData(dateValue));
 	}
 }

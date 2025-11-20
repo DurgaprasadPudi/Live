@@ -536,5 +536,14 @@ public class AttendanceRepository {
 	}
 	
 	
-	
+	 
+	public List<Map<String, Object>> getEmployeesLunchData(String dateValue) {
+			String sql = "SELECT " + "a.EMPLOYEEID, " + "CASE WHEN (b.callname IS NULL OR b.callname = '') "
+					+ "          AND LENGTH(a.EMPLOYEEID) = 4 " + "     THEN 'INTERN' " + "     ELSE b.callname "
+					+ "END AS name, " + "DATE(a.TRANSACTIONTIME) AS DATE, " + "TIME(a.TRANSACTIONTIME) AS TOKENTIME "
+					+ "FROM unit_local_db.tbl_reader_log a " + "LEFT JOIN hclhrm_prod.tbl_employee_primary b "
+					+ "       ON a.employeeid = b.employeesequenceno " + "WHERE a.readerid = 59 "
+					+ "  AND DATE(a.TRANSACTIONTIME) = ?";
+			return jdbcTemplate.queryForList(sql, dateValue);
+		}
 }
